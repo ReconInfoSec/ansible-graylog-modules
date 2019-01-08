@@ -1,0 +1,88 @@
+---
+- name: Testing Graylog modules
+  hosts: localhost
+  tasks:
+
+    - name: Create Graylog role
+      graylog_roles:
+        action: create
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        name: "ansible_role"
+        description: "Ansible test role"
+        permissions:
+          - "dashboards:read"
+        read_only: "true"
+
+    - name: Update Graylog role
+      graylog_roles:
+        action: update
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        name: "ansible_role"
+        description: "Ansible test role update"
+        permissions:
+          - "dashboards:read"
+        read_only: "true"
+
+    - name: List Graylog roles
+      graylog_roles:
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+      register: graylog_roles
+
+    - name: Print roles
+      debug:
+        msg: "{{ graylog_roles }}"
+
+    - name: Create Graylog user
+      graylog_users:
+        action: create
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        username: "ansible_user"
+        full_name: "Ansible User"
+        password: "{{ password }}"
+        email: "test-email@aol.com"
+        roles:
+          - "ansible_role"
+
+    - name: Update Graylog user
+      graylog_users:
+        action: update
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        username: "ansible_user"
+        email: "test-email-test2@aol.com"
+
+    - name: List Graylog users
+      graylog_users:
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+      register: graylog_users
+
+    - name: Print users
+      debug:
+        msg: "{{ graylog_users }}"
+
+    - name: Remove user
+      graylog_users:
+        action: delete
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        username: "ansible_user"
+
+    - name: Remove role
+      graylog_roles:
+        action: delete
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        name: "ansible_role"
