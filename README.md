@@ -1,6 +1,11 @@
 # ansible-graylog-modules
 Ansible modules for the Graylog API
 
+### In Progress
+
+* Pipelines
+* Pipeline rules
+
 ### Modules
 
 There are currently 3 modules with the following actions:
