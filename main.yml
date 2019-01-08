@@ -47,7 +47,7 @@
         username: "ansible_user"
         full_name: "Ansible User"
         password: "{{ password }}"
-        email: "test-email@aol.com"
+        email: "old-email@aol.com"
         roles:
           - "ansible_role"
 
@@ -58,7 +58,7 @@
         graylog_user: "admin"
         graylog_password: "{{ graylog_password }}"
         username: "ansible_user"
-        email: "test-email-test2@aol.com"
+        email: "new-email@aol.com"
 
     - name: List Graylog users
       graylog_users:
@@ -86,3 +86,87 @@
         graylog_user: "admin"
         graylog_password: "{{ graylog_password }}"
         name: "ansible_role"
+
+    - name: List streams
+      graylog_streams:
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+
+    - name: Create stream
+      graylog_streams:
+        action: create
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        title: "test_stream"
+        description: "Windows and IIS logs"
+        matching_type: "AND"
+        remove_matches_from_default_stream: False
+        rules:
+          - {"field":"message","type":1,"value":"test_stream rule","inverted": false,"description":"test_stream rule"}
+
+    - name: Get stream from stream name query
+      graylog_streams:
+        action: query_streams
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        stream_name: "test_stream"
+      register: stream
+
+    - name:  List single stream by ID
+      graylog_streams:
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+
+    - name: Update stream
+      graylog_streams:
+        action: update
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+        remove_matches_from_default_stream: True
+
+    - name: Create stream rule
+      graylog_streams:
+        action: create_rule
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+        description: "Windows Security Logs"
+        field: "winlogbeat_log_name"
+        type: "1"
+        value: "Security"
+        inverted: False
+    #
+    # - name: Update stream rule
+    #   graylog_streams:
+    #     action: update_rule
+    #     endpoint: "{{ endpoint }}"
+    #     graylog_user: "admin"
+    #     graylog_password: "{{ graylog_password }}"
+    #     stream_id: "{{ stream.json.id }}"
+    #     rule_id: "{{ rule.json.id }}"
+    #     description: "Windows Security and Application Logs"
+    #
+    # - name: Delete stream rule
+    #   graylog_streams:
+    #     action: delete_rule
+    #     endpoint: "{{ endpoint }}"
+    #     graylog_user: "admin"
+    #     graylog_password: "{{ graylog_password }}"
+    #     stream_id: "{{ stream.json.id }}"
+    #     rule_id: "{{ rule.json.id }}"
+    #
+    - name: Delete stream
+      graylog_streams:
+        action: delete
+        endpoint: "{{ endpoint }}"
+        graylog_user: "admin"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
