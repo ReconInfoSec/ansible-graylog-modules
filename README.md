@@ -5,6 +5,7 @@ Ansible modules for the Graylog API
 
 * Pipelines
 * Pipeline rules
+* Indices
 
 ### Modules
 
