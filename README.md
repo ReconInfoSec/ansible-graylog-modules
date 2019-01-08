@@ -7,7 +7,7 @@ There are currently 3 modules with the following actions:
 
 * graylog_users
   * create
-  * update - updates username, email, full_name, password, roles, permissions, read_only, timezone
+  * update - updates username, email, full_name, password, roles, permissions, timezone
   * delete
   * list
 * graylog_roles
@@ -44,7 +44,7 @@ More examples can be found in `main.yml`.
   register: graylog_users
 
 - name: List users
-  graylog_users:
+  debug:
     msg: "{{ graylog_users.json }}"
 ```
 
@@ -62,4 +62,15 @@ More examples can be found in `main.yml`.
     permissions:
       - "dashboards:read"
     read_only: "true"
+
+- name: Get Graylog roles
+  graylog_roles:
+    endpoint: "{{ endpoint }}"
+    graylog_user: "{{ graylog_user }}"
+    graylog_password: "{{ graylog_password }}"
+  register: graylog_roles
+
+- name: List roles
+  debug:
+    msg: "{{ graylog_roles.json }}"    
 ```
