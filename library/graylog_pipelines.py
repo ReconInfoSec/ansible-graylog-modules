@@ -40,6 +40,11 @@ options:
       - Pipeline id.
     required: false
     default: None
+  pipeline_name:
+    description:
+      - Pipeline name.
+    required: false
+    default: None
   stream_ids:
     description:
       - Stream id.
@@ -65,11 +70,6 @@ options:
       - Rule source.
     required: false
     default: None
-  stages:
-    description:
-      - Pipeline stages.
-    required: false
-    default: None
 """
 
 EXAMPLES = '''
@@ -78,6 +78,18 @@ EXAMPLES = '''
     endpoint: "graylog.mydomain.com"
     graylog_user: "username"
     graylog_password: "password"
+
+# Create stream
+- name: Create stream
+  graylog_streams:
+    action: create
+    endpoint: "{{ endpoint }}"
+    graylog_user: "{{ graylog_user }}"
+    graylog_password: "{{ graylog_password }}"
+    title: "test_stream"
+    description: "Windows and IIS logs"
+    matching_type: "AND"
+    remove_matches_from_default_stream: False
 
 # Get stream from stream name query_streams
 - graylog_streams:
@@ -97,11 +109,11 @@ EXAMPLES = '''
     title: "test_rule"
     description: "test"
     source: |
-      rule \"domain_threat_intel\"
+      rule "test_rule_domain_threat_intel"
       when
-         has_field(\"dns_query\")
+         has_field("dns_query")
       then
-         let dns_query_intel = threat_intel_lookup_domain(to_string($message.dns_query), \"dns_query\");
+         let dns_query_intel = threat_intel_lookup_domain(to_string($message.dns_query), "dns_query");
          set_fields(dns_query_intel);
       end
 
@@ -113,8 +125,11 @@ EXAMPLES = '''
     graylog_password: "password"
     title: "test_pipeline"
     description: "test"
-    stages:
-      - { "stage": 0, "match_all": false, "rules": [ "domain_threat_intel" ] }
+    source: |
+      pipeline "test_pipeline"
+      stage 1 match either
+      rule "test_rule_domain_threat_intel
+      end
 
 # Get pipeline from pipeline name query_pipelines
 - graylog_pipelines:
@@ -178,7 +193,7 @@ url:
   sample: https://www.ansible.com/
 '''
 
-def create(module,pipeline_url,api_token,title,description,stages):
+def create(module,pipeline_url,api_token,title,description,source):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -190,12 +205,12 @@ def create(module,pipeline_url,api_token,title,description,stages):
         payload['title'] = title
     if description is not None:
         payload['description'] = description
-    if stages is not None
-        payload['stages'] = stages
+    if source is not None:
+        payload['source'] = source
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
-    if info['status'] != 201:
+    if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % (info['msg']))
 
     try:
@@ -205,7 +220,7 @@ def create(module,pipeline_url,api_token,title,description,stages):
 
     return info['status'], info['msg'], content, url
 
-def create_connection(module,pipeline_url,api_token,pipeline_id,stream_ids):
+def create_connection(module,connection_url,api_token,pipeline_id,stream_ids):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -220,7 +235,7 @@ def create_connection(module,pipeline_url,api_token,pipeline_id,stream_ids):
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
-    if info['status'] != 201:
+    if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % (info['msg']))
 
     try:
@@ -230,7 +245,7 @@ def create_connection(module,pipeline_url,api_token,pipeline_id,stream_ids):
 
     return info['status'], info['msg'], content, url
 
-def create_rule(module,pipeline_url,api_token,title,description,source):
+def create_rule(module,rule_url,api_token,title,description,source):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -239,7 +254,7 @@ def create_rule(module,pipeline_url,api_token,title,description,source):
     payload = {}
 
     if title is not None:
-        payload['title'] = field
+        payload['title'] = title
     if description is not None:
         payload['description'] = description
     if source is not None:
@@ -247,7 +262,7 @@ def create_rule(module,pipeline_url,api_token,title,description,source):
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
-    if info['status'] != 201:
+    if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % (info['msg']))
 
     try:
@@ -257,20 +272,38 @@ def create_rule(module,pipeline_url,api_token,title,description,source):
 
     return info['status'], info['msg'], content, url
 
-def update(module,pipeline_url,api_token,pipeline_id,title,description,stages):
+def update(module,pipeline_url,api_token,pipeline_id,title,description,source):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
-    url = pipeline_url+"/%s" % (pipeline_id)
-
     payload = {}
+
+    if pipeline_id is not None:
+        url = pipeline_url+"/%s" % (pipeline_id)
+    else:
+        url = pipeline_url
+
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % (info['msg']))
+
+    try:
+        content = response.read()
+        payload_current = json.loads(content)
+    except AttributeError:
+        content = info.pop('body', '')
+
+    url = pipeline_url+"/%s" % (pipeline_id)
 
     if title is not None:
         payload['title'] = title
     if description is not None:
         payload['description'] = description
-    if stages is not None:
-        payload['stages'] = stages
+    if source is not None:
+        payload['source'] = source
+    else:
+        payload['source'] = payload_current['source']
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
@@ -284,7 +317,7 @@ def update(module,pipeline_url,api_token,pipeline_id,title,description,stages):
 
     return info['status'], info['msg'], content, url
 
-def update_connection(module,pipeline_url,api_token,pipeline_id,stream_ids):
+def update_connection(module,connection_url,api_token,pipeline_id,stream_ids):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -299,7 +332,7 @@ def update_connection(module,pipeline_url,api_token,pipeline_id,stream_ids):
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
-    if info['status'] != 201:
+    if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % (info['msg']))
 
     try:
@@ -309,7 +342,7 @@ def update_connection(module,pipeline_url,api_token,pipeline_id,stream_ids):
 
     return info['status'], info['msg'], content, url
 
-def update_rule(module,pipeline_url,api_token,rule_id,title,description,source):
+def update_rule(module,rule_url,api_token,rule_id,title,description,source):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -318,7 +351,7 @@ def update_rule(module,pipeline_url,api_token,rule_id,title,description,source):
     payload = {}
 
     if title is not None:
-        payload['title'] = field
+        payload['title'] = title
     if description is not None:
         payload['description'] = description
     if source is not None:
@@ -354,7 +387,7 @@ def delete(module,pipeline_url,api_token,pipeline_id):
 
     return info['status'], info['msg'], content, url
 
-def delete_rule(module,pipeline_url,api_token,rule_id):
+def delete_rule(module,rule_url,api_token,rule_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -393,7 +426,7 @@ def list(module,pipeline_url,api_token,pipeline_id):
 
     return info['status'], info['msg'], content, url
 
-def list_rules(module,pipeline_url,api_token):
+def list_rules(module,rule_url,api_token):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -432,8 +465,8 @@ def query_pipelines(module,pipeline_url,api_token,pipeline_name):
     if pipelines is not None:
 
         i = 0
-        while i < len(pipelines['pipelines']):
-            pipeline = pipelines['pipelines'][i]
+        while i < len(pipelines):
+            pipeline = pipelines[i]
             if pipeline_name == pipeline['title']:
                  pipeline_id = pipeline['id']
                  break
@@ -475,12 +508,12 @@ def main():
             graylog_password       = dict(type='str', no_log=True),
             action         = dict(type='str', required=False, default='list', choices=['create', 'create_connection', 'create_rule', 'update', 'update_connection', 'update_rule', 'delete', 'delete_rule', 'list', 'list_rules', 'query_pipelines']),
             pipeline_id     = dict(type='str', default=None),
+            pipeline_name     = dict(type='str', default=None),
             rule_id     = dict(type='str', default=None),
             stream_ids     = dict(type='list', default=None),
             title     = dict(type='str', default=None),
             description     = dict(type='str', default=None),
-            source     = dict(type='str', default=None),
-            stages     = dict(type='list', default=None),
+            source     = dict(type='str', default=None)
         )
     )
 
@@ -489,12 +522,12 @@ def main():
     graylog_password = module.params['graylog_password']
     action = module.params['action']
     pipeline_id = module.params['pipeline_id']
+    pipeline_name = module.params['pipeline_name']
     rule_id = module.params['rule_id']
     stream_ids = module.params['stream_ids']
     title = module.params['title']
     description = module.params['description']
     source = module.params['source']
-    stages = module.params['stages']
 
     pipeline_url = "https://%s/api/plugins/org.graylog.plugins.pipelineprocessor/system/pipelines/pipeline" % (endpoint)
     rule_url = "https://%s/api/plugins/org.graylog.plugins.pipelineprocessor/system/pipelines/rule" % (endpoint)
@@ -503,13 +536,13 @@ def main():
     api_token = get_token(module,endpoint,graylog_user,graylog_password)
 
     if action == "create":
-        status, message, content, url = create(module,pipeline_url,api_token,title,description,stages)
+        status, message, content, url = create(module,pipeline_url,api_token,title,description,source)
     elif action == "create_rule":
         status, message, content, url = create_rule(module,rule_url,api_token,title,description,source)
     elif action == "create_connection":
         status, message, content, url = create_connection(module,connection_url,api_token,pipeline_id,stream_ids)
     elif action == "update":
-        status, message, content, url = update(module,pipeline_url,api_token,pipeline_id,title,description,stages)
+        status, message, content, url = update(module,pipeline_url,api_token,pipeline_id,title,description,source)
     elif action == "update_connection":
         status, message, content, url = update_connection(module,connection_url,api_token,pipeline_id,stream_ids)
     elif action == "update_rule":
@@ -522,6 +555,9 @@ def main():
         status, message, content, url = list(module,pipeline_url,api_token,pipeline_id)
     elif action == "list_rules":
         status, message, content, url = list(module,rule_url,api_token)
+    elif action == "query_pipelines":
+        pipeline_id = query_pipelines(module,pipeline_url,api_token,pipeline_name)
+        status, message, content, url = list(module,pipeline_url,api_token,pipeline_id)
 
     uresp = {}
     content = to_text(content, encoding='UTF-8')

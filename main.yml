@@ -144,30 +144,102 @@
         type: "1"
         value: "Security"
         inverted: False
-    #
-    # - name: Update stream rule
-    #   graylog_streams:
-    #     action: update_rule
-    #     endpoint: "{{ endpoint }}"
-    #     graylog_user: "{{ graylog_user }}"
-    #     graylog_password: "{{ graylog_password }}"
-    #     stream_id: "{{ stream.json.id }}"
-    #     rule_id: "{{ rule.json.id }}"
-    #     description: "Windows Security and Application Logs"
-    #
-    # - name: Delete stream rule
-    #   graylog_streams:
-    #     action: delete_rule
-    #     endpoint: "{{ endpoint }}"
-    #     graylog_user: "{{ graylog_user }}"
-    #     graylog_password: "{{ graylog_password }}"
-    #     stream_id: "{{ stream.json.id }}"
-    #     rule_id: "{{ rule.json.id }}"
-    #
-    - name: Delete stream
+
+    - name: Update stream rule
       graylog_streams:
-        action: delete
+        action: update_rule
         endpoint: "{{ endpoint }}"
         graylog_user: "{{ graylog_user }}"
         graylog_password: "{{ graylog_password }}"
         stream_id: "{{ stream.json.id }}"
+        rule_id: "{{ rule.json.id }}"
+        description: "Windows Security and Application Logs"
+
+    - name: Delete stream rule
+      graylog_streams:
+        action: delete_rule
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+        rule_id: "{{ rule.json.id }}"
+    #
+    # - name: Delete stream
+    #   graylog_streams:
+    #     action: delete
+    #     endpoint: "{{ endpoint }}"
+    #     graylog_user: "{{ graylog_user }}"
+    #     graylog_password: "{{ graylog_password }}"
+    #     stream_id: "{{ stream.json.id }}"
+
+    - name: Create pipeline rule
+      graylog_pipelines:
+        action: create_rule
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        title: "test_rule"
+        description: "test"
+        source: |
+          rule "test_rule_domain_threat_intel"
+          when
+             has_field("dns_query")
+          then
+             let dns_query_intel = threat_intel_lookup_domain(to_string($message.dns_query), "dns_query");
+             set_fields(dns_query_intel);
+          end
+
+    - name: Create pipeline
+      graylog_pipelines:
+        action: create
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        title: "test_pipeline"
+        source: |
+          pipeline "test_pipeline"
+          stage 0 match either
+          end
+        description: "test_pipeline description"
+
+    - name: Get pipeline from pipeline name query_pipelines
+      graylog_pipelines:
+        action: query_pipelines
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        pipeline_name: "test_pipeline"
+      register: pipeline
+
+    - name: Update pipeline
+      graylog_pipelines:
+        action: update
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        pipeline_id: "{{ pipeline.json.id }}"
+        description: "test description update"
+        source: |
+          pipeline "test_pipeline"
+          stage 1 match either
+          rule "test_rule_domain_threat_intel"
+          end
+
+    - name: Create Stream connection to processing pipeline
+      graylog_pipelines:
+        action: create_connection
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        pipeline_id: "{{ pipeline.json.id }}"
+        stream_ids:
+          - "{{ stream.json.id }}"
+      register: pipeline
+    #
+    # - name: Delete pipeline
+    #   graylog_pipelines:
+    #     action: delete
+    #     endpoint: "{{ endpoint }}"
+    #     graylog_user: "{{ graylog_user }}"
+    #     graylog_password: "{{ graylog_password }}"
+    #     pipeline_id: "{{ pipeline.json.id }}"

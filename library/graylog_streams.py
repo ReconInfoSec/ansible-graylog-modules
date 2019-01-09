@@ -34,7 +34,7 @@ options:
       - Action to take against stream API.
     required: false
     default: list
-    choices: [ create, create_rule, update, update_rule, delete, delete_rule, list, query_streams ]
+    choices: [ create, create_rule, start, pause, update, update_rule, delete, delete_rule, list, query_streams ]
   title:
     description:
       - Stream title.
@@ -139,6 +139,22 @@ EXAMPLES = '''
     type: "1"
     value: "Security"
     inverted: False
+
+# Start stream
+- graylog_streams:
+    action: start
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    stream_id: "{{ stream.json.id }}"
+
+# Pause stream
+- graylog_streams:
+    action: pause
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    stream_id: "{{ stream.json.id }}"
 
 # Update stream rule
 - graylog_streams:
@@ -352,6 +368,42 @@ def delete_rule(module,base_url,api_token,stream_id,rule_id):
 
     return info['status'], info['msg'], content, url
 
+def start(module,base_url,api_token,stream_id):
+
+    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+
+    url = base_url+"/%s/resume" % (stream_id)
+
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST')
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % (info['msg']))
+
+    try:
+        content = response.read()
+    except AttributeError:
+        content = info.pop('body', '')
+
+    return info['status'], info['msg'], content, url
+
+def pause(module,base_url,api_token,stream_id):
+
+    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+
+    url = base_url+"/%s/pause" % (stream_id)
+
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST')
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % (info['msg']))
+
+    try:
+        content = response.read()
+    except AttributeError:
+        content = info.pop('body', '')
+
+    return info['status'], info['msg'], content, url
+
 def list(module,base_url,api_token,stream_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
@@ -458,7 +510,7 @@ def main():
             endpoint      = dict(type='str', default=None),
             graylog_user       = dict(type='str', default=None),
             graylog_password       = dict(type='str', no_log=True),
-            action         = dict(type='str', required=False, default='list', choices=['create', 'create_rule', 'update', 'update_rule', 'delete', 'delete_rule', 'list', 'query_streams']),
+            action         = dict(type='str', required=False, default='list', choices=['create', 'create_rule', 'start', 'pause', 'update', 'update_rule', 'delete', 'delete_rule', 'list', 'query_streams']),
             stream_id     = dict(type='str', default=None),
             stream_name     = dict(type='str', default=None),
             rule_id     = dict(type='str', default=None),
@@ -508,6 +560,10 @@ def main():
         status, message, content, url = delete(module,base_url,api_token,stream_id)
     elif action == "delete_rule":
         status, message, content, url = delete_rule(module,base_url,api_token,stream_id,rule_id)
+    elif action == "start":
+        status, message, content, url = start(module,base_url,api_token,stream_id)
+    elif action == "pause":
+        status, message, content, url = pause(module,base_url,api_token,stream_id)
     elif action == "list":
         status, message, content, url = list(module,base_url,api_token,stream_id)
     elif action == "query_streams":
