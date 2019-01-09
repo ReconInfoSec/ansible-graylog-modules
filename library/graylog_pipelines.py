@@ -79,27 +79,6 @@ EXAMPLES = '''
     graylog_user: "username"
     graylog_password: "password"
 
-# Create stream
-- name: Create stream
-  graylog_streams:
-    action: create
-    endpoint: "{{ endpoint }}"
-    graylog_user: "{{ graylog_user }}"
-    graylog_password: "{{ graylog_password }}"
-    title: "test_stream"
-    description: "Windows and IIS logs"
-    matching_type: "AND"
-    remove_matches_from_default_stream: False
-
-# Get stream from stream name query_streams
-- graylog_streams:
-    action: query_streams
-    endpoint: "graylog.mydomain.com"
-    graylog_user: "username"
-    graylog_password: "password"
-    stream_name: "test_stream"
-  register: stream
-
 # Create pipeline rule
 - graylog_pipelines:
     action: create_rule
@@ -149,7 +128,6 @@ EXAMPLES = '''
     pipeline_id: "{{ pipeline.json.id }}"
     stream_ids:
       - "{{ stream.json.id }}"
-  register: pipeline
 
 # Update Stream connection to processing pipeline
 - graylog_pipelines:
