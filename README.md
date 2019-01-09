@@ -13,23 +13,40 @@ There are currently 3 modules with the following actions:
 
 * graylog_users
   * create
-  * update - updates username, email, full_name, password, roles, permissions, timezone
+  * update
   * delete
   * list
 * graylog_roles
   * create
-  * update - updates name, description, permissions, read_only
+  * update
   * delete
   * list
 * graylog_streams
   * create
   * create_rule
-  * update - updates name, description, permissions, read_only
-  * update_rule - updates field, type, value, inverted, description
+  * update
+  * update_rule
   * delete
   * delete_rule
   * list
-  * query_streams - query by stream name
+  * query_streams - query by stream name (ie: to get stream ID)
+* graylog_pipelines
+  * create
+  * create_rule
+  * create_connection
+  * update
+  * update_rule
+  * update_connection
+  * delete
+  * delete_rule
+  * list
+  * query_streams - query by pipeline name (ie: to get pipeline ID)
+* graylog_index_sets
+  * create
+  * update
+  * delete
+  * list
+  * query_index_sets - query by index set name (ie: to get index set ID)
 
 ### Examples
 
@@ -210,7 +227,7 @@ More examples can be found in `main.yml`.
       - "{{ stream.json.id }}"
 ```
 
-#### Create Index Set and attach Stream
+#### Create Index Sets and attach Streams
 
 ```
 - name: Create index set
