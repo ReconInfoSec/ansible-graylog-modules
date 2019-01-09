@@ -17,17 +17,17 @@ options:
   endpoint:
     description:
       - Graylog endpoint. (i.e. graylog.mydomain.com:9000).
-    required: true
+    required: false
     default: None
   graylog_user:
     description:
       - Graylog privileged user username, used to auth with Graylog API.
-    required: true
+    required: false
     default: None
   graylog_password:
     description:
       - Graylog privileged user password, used to auth with Graylog API.
-    required: true
+    required: false
     default: None
   action:
     description:
@@ -293,9 +293,9 @@ def get_token(module,endpoint,username,password):
 def main():
     module = AnsibleModule(
         argument_spec = dict(
-            endpoint      = dict(type='str', required=True, default=None),
-            graylog_user       = dict(type='str', required=True),
-            graylog_password       = dict(type='str', required=True, no_log=True),
+            endpoint      = dict(type='str', default=None),
+            graylog_user       = dict(type='str', default=None),
+            graylog_password       = dict(type='str', no_log=True),
             action         = dict(type='str', required=False, default='list', choices=['create', 'update', 'delete', 'list']),
             username    = dict(type='str', default=None),
             password    = dict(type='str', default=None, no_log=True),

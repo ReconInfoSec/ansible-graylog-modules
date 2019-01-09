@@ -17,17 +17,17 @@ options:
   endpoint:
     description:
       - Graylog endoint. (i.e. graylog.mydomain.com).
-    required: true
+    required: false
     default: None
   graylog_user:
     description:
       - Graylog privileged user username.
-    required: true
+    required: false
     default: None
   graylog_password:
     description:
       - Graylog privileged user password.
-    required: true
+    required: false
     default: None
   action:
     description:
@@ -455,9 +455,9 @@ def get_token(module,endpoint,username,password):
 def main():
     module = AnsibleModule(
         argument_spec = dict(
-            endpoint      = dict(type='str', required=True, default=None),
-            graylog_user       = dict(type='str', required=True),
-            graylog_password       = dict(type='str', required=True, no_log=True),
+            endpoint      = dict(type='str', default=None),
+            graylog_user       = dict(type='str', default=None),
+            graylog_password       = dict(type='str', no_log=True),
             action         = dict(type='str', required=False, default='list', choices=['create', 'create_rule', 'update', 'update_rule', 'delete', 'delete_rule', 'list', 'query_streams']),
             stream_id     = dict(type='str', default=None),
             stream_name     = dict(type='str', default=None),
