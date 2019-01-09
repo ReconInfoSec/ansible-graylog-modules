@@ -142,3 +142,102 @@ More examples can be found in `main.yml`.
     value: "Security"
     inverted: False       
 ```
+
+#### Create Pipelines and Pipeline Rules
+
+```
+- name: Create pipeline rule
+  graylog_pipelines:
+    action: create_rule
+    endpoint: "{{ endpoint }}"
+    graylog_user: "{{ graylog_user }}"
+    graylog_password: "{{ graylog_password }}"
+    title: "test_rule"
+    description: "test"
+    source: |
+      rule "test_rule_domain_threat_intel"
+      when
+         has_field("dns_query")
+      then
+         let dns_query_intel = threat_intel_lookup_domain(to_string($message.dns_query), "dns_query");
+         set_fields(dns_query_intel);
+      end
+
+- name: Create pipeline
+  graylog_pipelines:
+    action: create
+    endpoint: "{{ endpoint }}"
+    graylog_user: "{{ graylog_user }}"
+    graylog_password: "{{ graylog_password }}"
+    title: "test_pipeline"
+    source: |
+      pipeline "test_pipeline"
+      stage 0 match either
+      end
+    description: "test_pipeline description"
+
+- name: Get pipeline from pipeline name
+  graylog_pipelines:
+    action: query_pipelines
+    endpoint: "{{ endpoint }}"
+    graylog_user: "{{ graylog_user }}"
+    graylog_password: "{{ graylog_password }}"
+    pipeline_name: "test_pipeline"
+  register: pipeline
+
+- name: Update pipeline with new rule
+  graylog_pipelines:
+    action: update
+    endpoint: "{{ endpoint }}"
+    graylog_user: "{{ graylog_user }}"
+    graylog_password: "{{ graylog_password }}"
+    pipeline_id: "{{ pipeline.json.id }}"
+    description: "test description update"
+    source: |
+      pipeline "test_pipeline"
+      stage 0 match either
+      rule "test_rule_domain_threat_intel"
+      end
+
+- name: Create Stream connection to processing pipeline
+  graylog_pipelines:
+    action: create_connection
+    endpoint: "{{ endpoint }}"
+    graylog_user: "{{ graylog_user }}"
+    graylog_password: "{{ graylog_password }}"
+    pipeline_id: "{{ pipeline.json.id }}"
+    stream_ids:
+      - "{{ stream.json.id }}"
+```
+
+#### Create Index Set and attach Stream
+
+```
+- name: Create index set
+  graylog_index_sets:
+    action: create
+    endpoint: "{{ endpoint }}"
+    graylog_user: "{{ graylog_user }}"
+    graylog_password: "{{ graylog_password }}"
+    title: "test_index_set"
+    index_prefix: "test_index_"
+    description: "test index set"
+
+- name: Get index set by name
+  graylog_index_sets:
+    action: query_index_sets
+    endpoint: "{{ endpoint }}"
+    graylog_user: "{{ graylog_user }}"
+    graylog_password: "{{ graylog_password }}"
+    title: "test_index_set"
+  register: index_set
+
+- name: Update stream to use new index set
+  graylog_streams:
+    action: create
+    endpoint: "{{ endpoint }}"
+    graylog_user: "{{ graylog_user }}"
+    graylog_password: "{{ graylog_password }}"
+    stream_id: "{{ stream.json.id }}"
+    index_set_id: "{{ index_set.json.id }}"
+```

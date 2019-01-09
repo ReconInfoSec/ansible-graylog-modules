@@ -45,6 +45,11 @@ options:
       - Stream description.
     required: false
     default: None
+  index_set_id:
+    description:
+      - Index set ID.
+    required: false
+    default: None
   matching_type:
     description:
       - Matching type for the stream rules.
@@ -206,7 +211,7 @@ url:
   sample: https://www.ansible.com/
 '''
 
-def create(module,base_url,api_token,title,description,remove_matches_from_default_stream,matching_type,rules,default_index_set_id):
+def create(module,base_url,api_token,title,description,remove_matches_from_default_stream,matching_type,rules,index_set_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -224,8 +229,8 @@ def create(module,base_url,api_token,title,description,remove_matches_from_defau
         payload['matching_type'] = matching_type
     if rules is not None:
         payload['rules'] = rules
-    if default_index_set_id is not "":
-        payload['index_set_id'] = default_index_set_id
+    if index_set_id is not "":
+        payload['index_set_id'] = index_set_id
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
@@ -270,7 +275,7 @@ def create_rule(module,base_url,api_token,stream_id,field,type,value,inverted,de
 
     return info['status'], info['msg'], content, url
 
-def update(module,base_url,api_token,stream_id,title,description,remove_matches_from_default_stream,matching_type,rules):
+def update(module,base_url,api_token,stream_id,title,description,remove_matches_from_default_stream,matching_type,rules,index_set_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -288,6 +293,8 @@ def update(module,base_url,api_token,stream_id,title,description,remove_matches_
         payload['matching_type'] = matching_type
     if rules is not None:
         payload['rules'] = rules
+    if index_set_id is not None:
+        payload['index_set_id'] = index_set_id
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
@@ -518,6 +525,7 @@ def main():
             field     = dict(type='str', default=None),
             type     = dict(type='int', default=1),
             value     = dict(type='str', default=None),
+            index_set_id     = dict(type='str', default=None),
             inverted     = dict(type='bool', default=False),
             description       = dict(type='str', default=None),
             remove_matches_from_default_stream       = dict(type='bool', default=False),
@@ -537,6 +545,7 @@ def main():
     field = module.params['field']
     type = module.params['type']
     value = module.params['value']
+    index_set_id = module.params['index_set_id']
     inverted = module.params['inverted']
     description = module.params['description']
     remove_matches_from_default_stream = module.params['remove_matches_from_default_stream']
@@ -548,8 +557,9 @@ def main():
     api_token = get_token(module,endpoint,graylog_user,graylog_password)
 
     if action == "create":
-        default_index_set_id = default_index_set(module,endpoint,base_url,api_token)
-        status, message, content, url = create(module,base_url,api_token,title,description,remove_matches_from_default_stream,matching_type,rules,default_index_set_id)
+        if index_set_id is None:
+            index_set_id = default_index_set(module,endpoint,base_url,api_token)
+        status, message, content, url = create(module,base_url,api_token,title,description,remove_matches_from_default_stream,matching_type,rules,index_set_id)
     elif action == "create_rule":
         status, message, content, url = create_rule(module,base_url,api_token,stream_id,field,type,value,inverted,description)
     elif action == "update":
