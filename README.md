@@ -6,6 +6,10 @@ Ansible modules for the [Graylog2/graylog2-server](https://github.com/graylog2/g
 * Indices
 * Inputs
 
+### Examples
+
+A full example playbook can be found in `main.yml`.
+
 ### Modules
 
 There are currently 3 modules with the following actions:
@@ -47,11 +51,7 @@ There are currently 3 modules with the following actions:
   * list
   * query_index_sets - query by index set name (ie: to get index set ID)
 
-### Examples
-
-More examples can be found in `main.yml`.
-
-#### Create User
+#### Users
 
 ```
 - name: Create Graylog user
@@ -79,7 +79,7 @@ More examples can be found in `main.yml`.
     msg: "{{ graylog_users.json }}"
 ```
 
-#### Create Role
+#### Roles
 
 ```
 - name: Create Graylog role
@@ -106,7 +106,7 @@ More examples can be found in `main.yml`.
     msg: "{{ graylog_roles.json }}"    
 ```
 
-#### Create Streams and Stream Rules
+#### Streams and Stream Rules
 
 ```
 - name: Create stream
@@ -159,7 +159,7 @@ More examples can be found in `main.yml`.
     inverted: False       
 ```
 
-#### Create Pipelines, Pipeline Rules, Stream connections
+#### Pipelines, Pipeline Rules, Stream connections
 
 ```
 - name: Create pipeline rule
@@ -226,7 +226,7 @@ More examples can be found in `main.yml`.
       - "{{ stream.json.id }}"
 ```
 
-#### Create Index Sets and attach Streams
+#### Index Sets and attach Streams
 
 ```
 - name: Create index set
