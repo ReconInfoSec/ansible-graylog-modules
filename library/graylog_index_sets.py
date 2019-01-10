@@ -59,47 +59,57 @@ options:
     description:
       - Elasticsearch analyzer for this index set.
     required: false
-    default: None
+    default: "standard"
   shards:
     description:
       - Number of Elasticsearch shards used per index in this index set.
     required: false
-    default: None
+    default: 4
   replicas:
     description:
       - Number of Elasticsearch replicas used per index in this index set.
     required: false
-    default: None
+    default: 1
   rotation_strategy_class:
     description:
       - Rotation strategy class, ex: org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategy
     required: false
-    default: None
+    default: "org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategy"
   retention_strategy_class:
     description:
       - Retention strategy class, ex: org.graylog2.indexer.retention.strategies.DeletionRetentionStrategy
     required: false
-    default: None
+    default: "org.graylog2.indexer.retention.strategies.DeletionRetentionStrategy"
   rotation_strategy:
     description:
       - Graylog uses multiple indices to store documents in. You can configure the strategy it uses to determine when to rotate the currently active write index. ex: { "type": "org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategyConfig", "rotation_period": "P1D" }
     required: false
-    default: None
+    default: dict(type='org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategyConfig', rotation_period='P1D')
   retention_strategy:
     description:
       - Graylog uses a retention strategy to clean up old indices. ex: { "type": "org.graylog2.indexer.rotation.strategies.DeletionRetentionStrategyConfig", "max_number_of_indices": "14" }
     required: false
-    default: None
+    default: dict(type='org.graylog2.indexer.retention.strategies.DeletionRetentionStrategyConfig', max_number_of_indices=14)
   index_optimization_max_num_segments:
     description:
       - Maximum number of segments per Elasticsearch index after optimization (force merge).
     required: false
-    default: None
+    default: 1
   index_optimization_disabled:
     description:
       - Disable Elasticsearch index optimization (force merge) after rotation.
     required: false
-    default: None
+    default: False
+  writable:
+    description:
+      - Writable, true or false.
+    required: false
+    default: True
+  default:
+    description:
+      - Default index set, true or false.
+    required: false
+    default: False
 
 """
 
