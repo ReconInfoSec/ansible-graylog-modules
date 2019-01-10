@@ -1,14 +1,12 @@
 # ansible-graylog-modules
 Ansible modules for the [Graylog2/graylog2-server](https://github.com/graylog2/graylog2-server) API
 
+A full example playbook can be found in `main.yml`.
+
 ### In Progress
 
 * Indices
 * Inputs
-
-### Examples
-
-A full example playbook can be found in `main.yml`.
 
 ### Modules
 
@@ -50,6 +48,8 @@ There are currently 3 modules with the following actions:
   * delete
   * list
   * query_index_sets - query by index set name (ie: to get index set ID)
+
+### Examples
 
 #### Users
 
