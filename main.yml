@@ -274,7 +274,7 @@
         title: "test_index_set"
       register: index_set
 
-    - name: Update stream
+    - name: Update stream with index set
       graylog_streams:
         action: update
         endpoint: "{{ endpoint }}"

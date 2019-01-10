@@ -250,7 +250,7 @@ There are currently 3 modules with the following actions:
 
 - name: Update stream to use new index set
   graylog_streams:
-    action: create
+    action: update
     endpoint: "{{ endpoint }}"
     graylog_user: "{{ graylog_user }}"
     graylog_password: "{{ graylog_password }}"
