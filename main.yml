@@ -184,6 +184,7 @@
              let dns_query_intel = threat_intel_lookup_domain(to_string($message.dns_query), "dns_query");
              set_fields(dns_query_intel);
           end
+      register: pipeline_rule
 
     - name: Create pipeline
       graylog_pipelines:
@@ -237,6 +238,14 @@
         graylog_user: "{{ graylog_user }}"
         graylog_password: "{{ graylog_password }}"
         pipeline_id: "{{ pipeline.json.id }}"
+
+    - name: Delete pipeline rule
+      graylog_pipelines:
+        action: delete_rule
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        rule_id: "{{ pipeline_rule.json.id }}"
 
     - name: Get all index sets
       graylog_index_sets:
