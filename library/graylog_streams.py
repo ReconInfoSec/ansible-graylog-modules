@@ -283,18 +283,41 @@ def update(module,base_url,api_token,stream_id,title,description,remove_matches_
 
     payload = {}
 
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % (info['msg']))
+
+    try:
+        content = response.read()
+        payload_current = json.loads(content)
+    except AttributeError:
+        content = info.pop('body', '')
+
     if title is not None:
         payload['title'] = title
+    else:
+        payload['title'] = payload_current['title']
     if description is not None:
         payload['description'] = description
+    else:
+        payload['description'] = payload_current['description']
     if remove_matches_from_default_stream is not None:
         payload['remove_matches_from_default_stream'] = remove_matches_from_default_stream
+    else:
+        payload['remove_matches_from_default_stream'] = payload_current['remove_matches_from_default_stream']
     if matching_type is not None:
         payload['matching_type'] = matching_type
+    else:
+        payload['matching_type'] = payload_current['matching_type']
     if rules is not None:
         payload['rules'] = rules
+    else:
+        payload['rules'] = payload_current['rules']
     if index_set_id is not None:
         payload['index_set_id'] = index_set_id
+    else:
+        payload['index_set_id'] = payload_current['index_set_id']
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
@@ -312,20 +335,41 @@ def update_rule(module,base_url,api_token,stream_id,rule_id,field,type,value,inv
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
+    payload = {}
+
     url = base_url+"/%s/rules/%s" % (stream_id,rule_id)
 
-    payload = {}
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % (info['msg']))
+
+    try:
+        content = response.read()
+        payload_current = json.loads(content)
+    except AttributeError:
+        content = info.pop('body', '')
 
     if field is not None:
         payload['field'] = field
+    else:
+        payload['field'] = payload_current['field']
     if type is not None:
         payload['type'] = type
+    else:
+        payload['type'] = payload_current['type']
     if value is not None:
         payload['value'] = value
+    else:
+        payload['value'] = payload_current['value']
     if inverted is not None:
         payload['inverted'] = inverted
+    else:
+        payload['inverted'] = payload_current['inverted']
     if description is not None:
         payload['description'] = description
+    else:
+        payload['description'] = payload_current['description']
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
@@ -563,7 +607,7 @@ def main():
     elif action == "create_rule":
         status, message, content, url = create_rule(module,base_url,api_token,stream_id,field,type,value,inverted,description)
     elif action == "update":
-        status, message, content, url = update(module,base_url,api_token,stream_id,title,description,remove_matches_from_default_stream,matching_type,rules)
+        status, message, content, url = update(module,base_url,api_token,stream_id,title,description,remove_matches_from_default_stream,matching_type,rules,index_set_id)
     elif action == "update_rule":
         status, message, content, url = update_rule(module,base_url,api_token,stream_id,rule_id,field,type,value,inverted,description)
     elif action == "delete":

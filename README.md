@@ -160,7 +160,7 @@ More examples can be found in `main.yml`.
     inverted: False       
 ```
 
-#### Create Pipelines and Pipeline Rules
+#### Create Pipelines, Pipeline Rules, Stream connections
 
 ```
 - name: Create pipeline rule
