@@ -10,7 +10,7 @@ A full example playbook can be found in `main.yml`.
 
 ### Modules
 
-There are currently 3 modules with the following actions:
+The following modules are available with the corresponding actions:
 
 * graylog_users
   * create
