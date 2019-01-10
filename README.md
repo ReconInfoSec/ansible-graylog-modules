@@ -1,11 +1,10 @@
 # ansible-graylog-modules
-Ansible modules for the Graylog API
+Ansible modules for the [Graylog2/graylog2-server](https://github.com/graylog2/graylog2-server) API
 
 ### In Progress
 
-* Pipelines
-* Pipeline rules
 * Indices
+* Inputs
 
 ### Modules
 
