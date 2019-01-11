@@ -189,7 +189,7 @@ def create(module,pipeline_url,api_token,title,description,source):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -214,7 +214,7 @@ def create_connection(module,connection_url,api_token,pipeline_id,stream_ids):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -241,7 +241,7 @@ def create_rule(module,rule_url,api_token,title,description,source):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -264,7 +264,7 @@ def update(module,pipeline_url,api_token,pipeline_id,title,description,source):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -286,7 +286,7 @@ def update(module,pipeline_url,api_token,pipeline_id,title,description,source):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -311,7 +311,7 @@ def update_connection(module,connection_url,api_token,pipeline_id,stream_ids):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -338,7 +338,7 @@ def update_rule(module,rule_url,api_token,rule_id,title,description,source):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -356,7 +356,7 @@ def delete(module,pipeline_url,api_token,pipeline_id):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='DELETE')
 
     if info['status'] != 204:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -374,7 +374,7 @@ def delete_rule(module,rule_url,api_token,rule_id):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='DELETE')
 
     if info['status'] != 204:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -395,7 +395,7 @@ def list(module,pipeline_url,api_token,pipeline_id):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -413,7 +413,7 @@ def list_rules(module,rule_url,api_token):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -431,7 +431,7 @@ def query_pipelines(module,pipeline_url,api_token,pipeline_name):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -466,7 +466,7 @@ def get_token(module,endpoint,username,password):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()

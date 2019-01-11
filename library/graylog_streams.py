@@ -235,7 +235,7 @@ def create(module,base_url,api_token,title,description,remove_matches_from_defau
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 201:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -266,7 +266,7 @@ def create_rule(module,base_url,api_token,stream_id,field,type,value,inverted,de
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 201:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -286,7 +286,7 @@ def update(module,base_url,api_token,stream_id,title,description,remove_matches_
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -322,7 +322,7 @@ def update(module,base_url,api_token,stream_id,title,description,remove_matches_
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -342,7 +342,7 @@ def update_rule(module,base_url,api_token,stream_id,rule_id,field,type,value,inv
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -374,7 +374,7 @@ def update_rule(module,base_url,api_token,stream_id,rule_id,field,type,value,inv
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -392,7 +392,7 @@ def delete(module,base_url,api_token,stream_id):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='DELETE')
 
     if info['status'] != 204:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -410,7 +410,7 @@ def delete_rule(module,base_url,api_token,stream_id,rule_id):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='DELETE')
 
     if info['status'] != 204:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -428,7 +428,7 @@ def start(module,base_url,api_token,stream_id):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -446,7 +446,7 @@ def pause(module,base_url,api_token,stream_id):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -467,7 +467,7 @@ def list(module,base_url,api_token,stream_id):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -485,7 +485,7 @@ def query_streams(module,base_url,api_token,stream_name):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -515,7 +515,7 @@ def default_index_set(module,endpoint,base_url,api_token):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -543,7 +543,7 @@ def get_token(module,endpoint,username,password):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % (info['msg']))
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
