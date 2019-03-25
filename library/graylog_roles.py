@@ -160,7 +160,7 @@ def update(module,base_url,api_token,name,description,permissions,read_only):
     if name is not None:
         payload['name'] = name
     if description is not None:
-        payload['description'] = name
+        payload['description'] = description
     if permissions is not None:
         payload['permissions'] = permissions
     if read_only is not None:
