@@ -545,16 +545,16 @@ def main():
     description = module.params['description']
     source = module.params['source']
 
-    pipeline_url = "https://%s/api/plugins/org.graylog.plugins.pipelineprocessor/system/pipelines/pipeline" % (endpoint)
-    rule_url = "https://%s/api/plugins/org.graylog.plugins.pipelineprocessor/system/pipelines/rule" % (endpoint)
-    connection_url = "https://%s/api/plugins/org.graylog.plugins.pipelineprocessor/system/pipelines/connections" % (endpoint)
+    pipeline_url = "https://%s/api/system/pipelines/pipeline" % (endpoint)
+    rule_url = "https://%s/api/system/pipelines/rule" % (endpoint)
+    connection_url = "https://%s/api/system/pipelines/connections" % (endpoint)
 
     api_token = get_token(module,endpoint,graylog_user,graylog_password)
 
     if action == "create":
         status, message, content, url = create(module,pipeline_url,api_token,title,description,source)
     elif action == "parse_rule":
-        status, message, content, url = create_rule(module,rule_url,api_token,source)
+        status, message, content, url = parse_rule(module,rule_url,api_token,source)
     elif action == "create_rule":
         status, message, content, url = create_rule(module,rule_url,api_token,title,description,source)
     elif action == "create_connection":
