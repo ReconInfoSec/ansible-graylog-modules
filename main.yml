@@ -167,7 +167,7 @@
         graylog_password: "{{ graylog_password }}"
         stream_id: "{{ stream.json.id }}"
         rule_id: "{{ rule.json.streamrule_id }}"
-
+        
     - name: Validate pipeline rule
       graylog_pipelines:
         action: parse_rule
@@ -182,7 +182,7 @@
              let dns_query_intel = threat_intel_lookup_domain(to_string($message.dns_query), "dns_query");
              set_fields(dns_query_intel);
           end
-      register: pipeline_rule
+      register: validate_rule
 
     - name: Create pipeline rule
       graylog_pipelines:
@@ -201,6 +201,7 @@
              set_fields(dns_query_intel);
           end
       register: pipeline_rule
+      when: validate_rule.status == 200
 
     - name: Create pipeline
       graylog_pipelines:
