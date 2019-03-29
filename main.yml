@@ -3,6 +3,171 @@
   hosts: localhost
   tasks:
 
+    - name: Create Graylog role
+      graylog_roles:
+        action: create
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        name: "ansible_role"
+        description: "Ansible test role"
+        permissions:
+          - "dashboards:read"
+        read_only: "true"
+
+    - name: Update Graylog role
+      graylog_roles:
+        action: update
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        name: "ansible_role"
+        description: "Ansible test role update"
+        permissions:
+          - "dashboards:read"
+        read_only: "true"
+
+    - name: List Graylog roles
+      graylog_roles:
+        action: list
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+      register: graylog_roles
+
+    - name: Print roles
+      debug:
+        msg: "{{ graylog_roles }}"
+
+    - name: Create Graylog user
+      graylog_users:
+        action: create
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        username: "ansible_user"
+        full_name: "Ansible User"
+        password: "{{ password }}"
+        email: "old-email@aol.com"
+        roles:
+          - "ansible_role"
+
+    - name: Update Graylog user
+      graylog_users:
+        action: update
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        username: "ansible_user"
+        email: "new-email@aol.com"
+
+    - name: List Graylog users
+      graylog_users:
+        action: list
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+      register: graylog_users
+
+    - name: Print users
+      debug:
+        msg: "{{ graylog_users }}"
+
+    - name: Remove user
+      graylog_users:
+        action: delete
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        username: "ansible_user"
+
+    - name: Remove role
+      graylog_roles:
+        action: delete
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        name: "ansible_role"
+
+    - name: List streams
+      graylog_streams:
+        action: list
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+
+    - name: Create stream
+      graylog_streams:
+        action: create
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        title: "test_stream"
+        description: "Windows and IIS logs"
+        matching_type: "AND"
+        remove_matches_from_default_stream: False
+        rules:
+          - {"field":"message","type":1,"value":"test_stream rule","inverted": false,"description":"test_stream rule"}
+
+    - name: Get stream from stream name query
+      graylog_streams:
+        action: query_streams
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        stream_name: "test_stream"
+      register: stream
+
+    - name:  List single stream by ID
+      graylog_streams:
+        action: list
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+
+    - name: Update stream
+      graylog_streams:
+        action: update
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+        remove_matches_from_default_stream: True
+
+    - name: Create stream rule
+      graylog_streams:
+        action: create_rule
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+        description: "Windows Security Logs"
+        field: "winlogbeat_log_name"
+        type: "1"
+        value: "Security"
+        inverted: False
+      register: rule
+
+    - name: Update stream rule
+      graylog_streams:
+        action: update_rule
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+        rule_id: "{{ rule.json.streamrule_id }}"
+        description: "Windows Security and Application Logs"
+
+    - name: Delete stream rule
+      graylog_streams:
+        action: delete_rule
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+        rule_id: "{{ rule.json.streamrule_id }}"
+
     - name: Validate pipeline rule
       graylog_pipelines:
         action: parse_rule
@@ -18,3 +183,134 @@
              set_fields(dns_query_intel);
           end
       register: pipeline_rule
+
+    - name: Create pipeline rule
+      graylog_pipelines:
+        action: create_rule
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        title: "test_rule"
+        description: "test"
+        source: |
+          rule "test_rule_domain_threat_intel"
+          when
+             has_field("dns_query")
+          then
+             let dns_query_intel = threat_intel_lookup_domain(to_string($message.dns_query), "dns_query");
+             set_fields(dns_query_intel);
+          end
+      register: pipeline_rule
+
+    - name: Create pipeline
+      graylog_pipelines:
+        action: create
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        title: "test_pipeline"
+        source: |
+          pipeline "test_pipeline"
+          stage 0 match either
+          end
+        description: "test_pipeline description"
+
+    - name: Get pipeline from pipeline name query_pipelines
+      graylog_pipelines:
+        action: query_pipelines
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        pipeline_name: "test_pipeline"
+      register: pipeline
+
+    - name: Update pipeline with rule
+      graylog_pipelines:
+        action: update
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        pipeline_id: "{{ pipeline.json.id }}"
+        source: |
+          pipeline "test_pipeline"
+          stage 0 match either
+          rule "test_rule_domain_threat_intel"
+          end
+
+    - name: Create Stream connection to processing pipeline
+      graylog_pipelines:
+        action: create_connection
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        pipeline_id: "{{ pipeline.json.id }}"
+        stream_ids:
+          - "{{ stream.json.id }}"
+
+    - name: Delete pipeline
+      graylog_pipelines:
+        action: delete
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        pipeline_id: "{{ pipeline.json.id }}"
+
+    - name: Delete pipeline rule
+      graylog_pipelines:
+        action: delete_rule
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        rule_id: "{{ pipeline_rule.json.id }}"
+
+    - name: Get all index sets
+      graylog_index_sets:
+        action: list
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+      register: index_sets
+
+    - name: Create index set
+      graylog_index_sets:
+        action: create
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        title: "test_index_set"
+        index_prefix: "test_index_"
+        description: "test index set"
+
+    - name: Get index set by name
+      graylog_index_sets:
+        action: query_index_sets
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        title: "test_index_set"
+      register: index_set
+
+    - name: Update stream with index set
+      graylog_streams:
+        action: update
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+        index_set_id: "{{ index_set.json.id }}"
+
+    - name: Delete stream
+      graylog_streams:
+        action: delete
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        stream_id: "{{ stream.json.id }}"
+
+    - name: Delete new index set
+      graylog_index_sets:
+        action: delete
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        index_set_id: "{{ index_set.json.id }}"
