@@ -34,7 +34,7 @@ options:
       - Action to take against pipeline API.
     required: false
     default: list
-    choices: [ create, create_connection, create_rule, update, update_connection, update_rule, delete, delete_rule, list, list_rules, query_pipelines ]
+    choices: [ create, create_connection, parse_rule, create_rule, update, update_connection, update_rule, delete, delete_rule, list, list_rules, query_pipelines ]
   pipeline_id:
     description:
       - Pipeline id.
@@ -78,6 +78,21 @@ EXAMPLES = '''
     endpoint: "graylog.mydomain.com"
     graylog_user: "username"
     graylog_password: "password"
+
+# Validate/parse pipeline rule
+- graylog_pipelines:
+    action: parse_rule
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    source: |
+      rule "test_rule_domain_threat_intel"
+      when
+         has_field("dns_query")
+      then
+         let dns_query_intel = threat_intel_lookup_domain(to_string($message.dns_query), "dns_query");
+         set_fields(dns_query_intel);
+      end
 
 # Create pipeline rule
 - graylog_pipelines:
@@ -210,6 +225,29 @@ def create_connection(module,connection_url,api_token,pipeline_id,stream_ids):
         payload['pipeline_id'] = pipeline_id
     if stream_ids is not None:
         payload['stream_ids'] = stream_ids
+
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+
+    try:
+        content = response.read()
+    except AttributeError:
+        content = info.pop('body', '')
+
+    return info['status'], info['msg'], content, url
+
+def parse_rule(module,rule_url,api_token,source):
+
+    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+
+    url = rule_url + "/parse"
+
+    payload = {}
+
+    if source is not None:
+        payload['source'] = source
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
@@ -484,7 +522,7 @@ def main():
             endpoint      = dict(type='str', default=None),
             graylog_user       = dict(type='str', default=None),
             graylog_password       = dict(type='str', no_log=True),
-            action         = dict(type='str', required=False, default='list', choices=['create', 'create_connection', 'create_rule', 'update', 'update_connection', 'update_rule', 'delete', 'delete_rule', 'list', 'list_rules', 'query_pipelines']),
+            action         = dict(type='str', required=False, default='list', choices=['create', 'create_connection', 'parse_rule', 'create_rule', 'update', 'update_connection', 'update_rule', 'delete', 'delete_rule', 'list', 'list_rules', 'query_pipelines']),
             pipeline_id     = dict(type='str', default=None),
             pipeline_name     = dict(type='str', default=None),
             rule_id     = dict(type='str', default=None),
@@ -515,6 +553,8 @@ def main():
 
     if action == "create":
         status, message, content, url = create(module,pipeline_url,api_token,title,description,source)
+    elif action == "parse_rule":
+        status, message, content, url = create_rule(module,rule_url,api_token,source)
     elif action == "create_rule":
         status, message, content, url = create_rule(module,rule_url,api_token,title,description,source)
     elif action == "create_connection":
