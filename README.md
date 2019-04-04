@@ -41,7 +41,8 @@ The following modules are available with the corresponding actions:
   * delete
   * delete_rule
   * list
-  * query_streams - query by pipeline name (ie: to get pipeline ID)
+  * query_pipelines - query by pipeline name (ie: to get pipeline ID)
+  * query_rules - query by rule name (ie: to get rule ID)
 * graylog_index_sets
   * create
   * update
