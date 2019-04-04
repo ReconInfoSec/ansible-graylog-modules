@@ -34,7 +34,7 @@ options:
       - Action to take against pipeline API.
     required: false
     default: list
-    choices: [ create, create_connection, parse_rule, create_rule, update, update_connection, update_rule, delete, delete_rule, list, list_rules, query_pipelines ]
+    choices: [ create, create_connection, parse_rule, create_rule, update, update_connection, update_rule, delete, delete_rule, list, list_rules, query_rules, query_pipelines ]
   pipeline_id:
     description:
       - Pipeline id.
@@ -52,7 +52,12 @@ options:
     default: None
   rule_id:
     description:
-      - Connection id.
+      - Rule id.
+    required: false
+    default: None
+  rule_name:
+    description:
+      - Rule name.
     required: false
     default: None
   title:
@@ -442,11 +447,14 @@ def list(module,pipeline_url,api_token,pipeline_id):
 
     return info['status'], info['msg'], content, url
 
-def list_rules(module,rule_url,api_token):
+def list_rules(module,rule_url,api_token,rule_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
-    url = rule_url
+    if rule_id is not None:
+        url = rule_url+"/%s" % (rule_id)
+    else:
+        url = rule_url
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
@@ -490,6 +498,36 @@ def query_pipelines(module,pipeline_url,api_token,pipeline_name):
 
     return pipeline_id
 
+def query_rules(module,rule_url,api_token,rule_name):
+
+    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+
+    url = rule_url
+
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+
+    try:
+        content = response.read()
+        rules = json.loads(content)
+    except AttributeError:
+        content = info.pop('body', '')
+
+    rule_id = ""
+    if rules is not None:
+
+        i = 0
+        while i < len(rules):
+            rule = rules[i]
+            if rule_name == rule['title']:
+                 rule_id = rule['id']
+                 break
+            i += 1
+
+    return rule_id
+
 def get_token(module,endpoint,username,password):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" }'
@@ -522,10 +560,11 @@ def main():
             endpoint      = dict(type='str', default=None),
             graylog_user       = dict(type='str', default=None),
             graylog_password       = dict(type='str', no_log=True),
-            action         = dict(type='str', required=False, default='list', choices=['create', 'create_connection', 'parse_rule', 'create_rule', 'update', 'update_connection', 'update_rule', 'delete', 'delete_rule', 'list', 'list_rules', 'query_pipelines']),
+            action         = dict(type='str', required=False, default='list', choices=['create', 'create_connection', 'parse_rule', 'create_rule', 'update', 'update_connection', 'update_rule', 'delete', 'delete_rule', 'list', 'list_rules', 'query_rules', 'query_pipelines']),
             pipeline_id     = dict(type='str', default=None),
             pipeline_name     = dict(type='str', default=None),
             rule_id     = dict(type='str', default=None),
+            rule_name     = dict(type='str', default=None),
             stream_ids     = dict(type='list', default=None),
             title     = dict(type='str', default=None),
             description     = dict(type='str', default=None),
@@ -540,6 +579,7 @@ def main():
     pipeline_id = module.params['pipeline_id']
     pipeline_name = module.params['pipeline_name']
     rule_id = module.params['rule_id']
+    rule_name = module.params['rule_name']
     stream_ids = module.params['stream_ids']
     title = module.params['title']
     description = module.params['description']
@@ -571,11 +611,14 @@ def main():
         status, message, content, url = delete_rule(module,rule_url,api_token,rule_id)
     elif action == "list":
         status, message, content, url = list(module,pipeline_url,api_token,pipeline_id)
-    elif action == "list_rules":
-        status, message, content, url = list(module,rule_url,api_token)
     elif action == "query_pipelines":
         pipeline_id = query_pipelines(module,pipeline_url,api_token,pipeline_name)
         status, message, content, url = list(module,pipeline_url,api_token,pipeline_id)
+    elif action == "list_rules":
+        status, message, content, url = list_rules(module,rule_url,api_token,rule_id)
+    elif action == "query_rules":
+        rule_id = query_rules(module,rule_url,api_token,rule_name)
+        status, message, content, url = list_rules(module,rule_url,api_token,rule_id)
 
     uresp = {}
     content = to_text(content, encoding='UTF-8')

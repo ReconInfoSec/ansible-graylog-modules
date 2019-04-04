@@ -167,7 +167,7 @@
         graylog_password: "{{ graylog_password }}"
         stream_id: "{{ stream.json.id }}"
         rule_id: "{{ rule.json.streamrule_id }}"
-        
+
     - name: Validate pipeline rule
       graylog_pipelines:
         action: parse_rule
