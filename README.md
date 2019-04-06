@@ -38,6 +38,7 @@ The following modules are available with the corresponding actions:
   * update
   * update_rule
   * update_connection
+  * parse_rule
   * delete
   * delete_rule
   * list
