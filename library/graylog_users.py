@@ -2,11 +2,14 @@
 # (c) 2019, Whitney Champion <whitney.ellis.champion@gmail.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 module: graylog_users
 short_description: Communicate with the Graylog API to manage users
 description:
@@ -65,7 +68,7 @@ options:
       - List of permission names to add the user to.
     required: false
     default: None
-"""
+'''
 
 EXAMPLES = '''
 # List users
@@ -158,7 +161,8 @@ url:
   sample: https://www.ansible.com/
 '''
 
-def create(module,base_url,api_token,username,password,email,full_name,roles,permissions,timezone):
+
+def create(module, base_url, api_token, username, password, email, full_name, roles, permissions, timezone):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -184,7 +188,7 @@ def create(module,base_url,api_token,username,password,email,full_name,roles,per
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 201:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -193,11 +197,12 @@ def create(module,base_url,api_token,username,password,email,full_name,roles,per
 
     return info['status'], info['msg'], content, url
 
-def update(module,base_url,api_token,username,password,email,full_name,roles,permissions,timezone):
+
+def update(module, base_url, api_token, username, password, email, full_name, roles, permissions, timezone):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
-    url = base_url+"/%s" % (username)
+    url = base_url + "/%s" % (username)
 
     payload = {}
 
@@ -219,7 +224,7 @@ def update(module,base_url,api_token,username,password,email,full_name,roles,per
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
     if info['status'] != 204:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -228,16 +233,17 @@ def update(module,base_url,api_token,username,password,email,full_name,roles,per
 
     return info['status'], info['msg'], content, url
 
-def delete(module,base_url,api_token,username):
+
+def delete(module, base_url, api_token, username):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" , "Authorization": "Basic %s"}' % (api_token)
 
-    url = base_url+"/%s" % (username)
+    url = base_url + "/%s" % (username)
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='DELETE')
 
     if info['status'] != 204:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -246,7 +252,8 @@ def delete(module,base_url,api_token,username):
 
     return info['status'], info['msg'], content, url
 
-def list(module,base_url,api_token):
+
+def list(module, base_url, api_token):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -255,7 +262,7 @@ def list(module,base_url,api_token):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -264,7 +271,8 @@ def list(module,base_url,api_token):
 
     return info['status'], info['msg'], content, url
 
-def get_token(module,endpoint,username,password):
+
+def get_token(module, endpoint, username, password):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" }'
 
@@ -278,7 +286,7 @@ def get_token(module,endpoint,username,password):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -286,24 +294,25 @@ def get_token(module,endpoint,username,password):
     except AttributeError:
         content = info.pop('body', '')
 
-    session_token = base64.b64encode(session['session_id']+":session")
+    session_token = base64.b64encode(session['session_id'] + ":session")
 
     return session_token
 
+
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
-            endpoint      = dict(type='str', default=None),
-            graylog_user       = dict(type='str', default=None),
-            graylog_password       = dict(type='str', no_log=True),
-            action         = dict(type='str', required=False, default='list', choices=['create', 'update', 'delete', 'list']),
-            username    = dict(type='str', default=None),
-            password    = dict(type='str', default=None, no_log=True),
-            full_name  = dict(type='str', default=None),
-            email       = dict(type='str', default=None),
-            timezone       = dict(type='str', default='UTC'),
-            roles       = dict(type='list', default=None),
-            permissions       = dict(type='list', default=[])
+        argument_spec=dict(
+            endpoint=dict(type='str', default=None),
+            graylog_user=dict(type='str', default=None),
+            graylog_password=dict(type='str', no_log=True),
+            action=dict(type='str', required=False, default='list', choices=['create', 'update', 'delete', 'list']),
+            username=dict(type='str', default=None),
+            password=dict(type='str', default=None, no_log=True),
+            full_name=dict(type='str', default=None),
+            email=dict(type='str', default=None),
+            timezone=dict(type='str', default='UTC'),
+            roles=dict(type='list', default=None),
+            permissions=dict(type='list', default=[])
         )
     )
 
@@ -321,16 +330,16 @@ def main():
 
     base_url = "https://%s/api/users" % (endpoint)
 
-    api_token = get_token(module,endpoint,graylog_user,graylog_password)
+    api_token = get_token(module, endpoint, graylog_user, graylog_password)
 
     if action == "create":
-        status, message, content, url = create(module,base_url,api_token,username,password,email,full_name,roles,permissions,timezone)
+        status, message, content, url = create(module, base_url, api_token, username, password, email, full_name, roles, permissions, timezone)
     elif action == "update":
-        status, message, content, url = update(module,base_url,api_token,username,password,email,full_name,roles,permissions,timezone)
+        status, message, content, url = update(module, base_url, api_token, username, password, email, full_name, roles, permissions, timezone)
     elif action == "delete":
-        status, message, content, url = delete(module,base_url,api_token,username)
+        status, message, content, url = delete(module, base_url, api_token, username)
     elif action == "list":
-        status, message, content, url = list(module,base_url,api_token)
+        status, message, content, url = list(module, base_url, api_token)
 
     uresp = {}
     content = to_text(content, encoding='UTF-8')
@@ -347,11 +356,13 @@ def main():
 
     module.exit_json(**uresp)
 
+
 # import module snippets
 import json
 import base64
 from ansible.module_utils.basic import *
 from ansible.module_utils.urls import *
+
 
 if __name__ == '__main__':
     main()

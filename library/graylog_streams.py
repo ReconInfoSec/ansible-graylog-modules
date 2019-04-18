@@ -2,11 +2,14 @@
 # (c) 2019, Whitney Champion <whitney.ellis.champion@gmail.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
 ANSIBLE_METADATA = {'metadata_version': '1.0',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
-DOCUMENTATION = """
+DOCUMENTATION = '''
 module: graylog_streams
 short_description: Communicate with the Graylog API to manage streams
 description:
@@ -72,7 +75,7 @@ options:
     default: None
   type:
     description:
-      - Rule type for the stream rule: 1 (match exactly), 2 (match regular expression), 3 (greater than), 4 (smaller than), 5 (field presence), 6 (contain), 7 (always match).
+      - Rule type for the stream rule: 1-7.
     required: false
     default: None
   value:
@@ -85,7 +88,7 @@ options:
       - Invert rule (must not match value).
     required: false
     default: False
-"""
+'''
 
 EXAMPLES = '''
 # List streams
@@ -121,7 +124,7 @@ EXAMPLES = '''
     matching_type: "AND"
     remove_matches_from_default_stream: False
     rules:
-      - "{\"field\":\"message\",\"type\":\"6\",\"value\":\"test\",\"inverted\":true,\"description\":\"testrule\"}"
+      - '{"field":"message", "type":"6", "value":"test", "inverted":true, "description":"testrule"}'
 
 # Update stream
 - graylog_streams:
@@ -211,7 +214,8 @@ url:
   sample: https://www.ansible.com/
 '''
 
-def create(module,base_url,api_token,title,description,remove_matches_from_default_stream,matching_type,rules,index_set_id):
+
+def create(module, base_url, api_token, title, description, remove_matches_from_default_stream, matching_type, rules, index_set_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -235,7 +239,7 @@ def create(module,base_url,api_token,title,description,remove_matches_from_defau
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 201:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -244,11 +248,12 @@ def create(module,base_url,api_token,title,description,remove_matches_from_defau
 
     return info['status'], info['msg'], content, url
 
-def create_rule(module,base_url,api_token,stream_id,field,type,value,inverted,description):
+
+def create_rule(module, base_url, api_token, stream_id, field, type, value, inverted, description):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
-    url = base_url+"/%s/rules" % (stream_id)
+    url = base_url + "/%s/rules" % (stream_id)
 
     payload = {}
 
@@ -266,7 +271,7 @@ def create_rule(module,base_url,api_token,stream_id,field,type,value,inverted,de
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 201:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -275,18 +280,19 @@ def create_rule(module,base_url,api_token,stream_id,field,type,value,inverted,de
 
     return info['status'], info['msg'], content, url
 
-def update(module,base_url,api_token,stream_id,title,description,remove_matches_from_default_stream,matching_type,rules,index_set_id):
+
+def update(module, base_url, api_token, stream_id, title, description, remove_matches_from_default_stream, matching_type, rules, index_set_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
-    url = base_url+"/%s" % (stream_id)
+    url = base_url + "/%s" % (stream_id)
 
     payload = {}
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -322,7 +328,7 @@ def update(module,base_url,api_token,stream_id,title,description,remove_matches_
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -331,18 +337,19 @@ def update(module,base_url,api_token,stream_id,title,description,remove_matches_
 
     return info['status'], info['msg'], content, url
 
-def update_rule(module,base_url,api_token,stream_id,rule_id,field,type,value,inverted,description):
+
+def update_rule(module, base_url, api_token, stream_id, rule_id, field, type, value, inverted, description):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
     payload = {}
 
-    url = base_url+"/%s/rules/%s" % (stream_id,rule_id)
+    url = base_url + "/%s/rules/%s" % (stream_id, rule_id)
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -374,7 +381,7 @@ def update_rule(module,base_url,api_token,stream_id,rule_id,field,type,value,inv
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -383,16 +390,17 @@ def update_rule(module,base_url,api_token,stream_id,rule_id,field,type,value,inv
 
     return info['status'], info['msg'], content, url
 
-def delete(module,base_url,api_token,stream_id):
+
+def delete(module, base_url, api_token, stream_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
-    url = base_url+"/%s" % (stream_id)
+    url = base_url + "/%s" % (stream_id)
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='DELETE')
 
     if info['status'] != 204:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -401,16 +409,17 @@ def delete(module,base_url,api_token,stream_id):
 
     return info['status'], info['msg'], content, url
 
-def delete_rule(module,base_url,api_token,stream_id,rule_id):
+
+def delete_rule(module, base_url, api_token, stream_id, rule_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
-    url = base_url+"/%s/rules/%s" % (stream_id,rule_id)
+    url = base_url + "/%s/rules/%s" % (stream_id, rule_id)
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='DELETE')
 
     if info['status'] != 204:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -419,16 +428,17 @@ def delete_rule(module,base_url,api_token,stream_id,rule_id):
 
     return info['status'], info['msg'], content, url
 
-def start(module,base_url,api_token,stream_id):
+
+def start(module, base_url, api_token, stream_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
-    url = base_url+"/%s/resume" % (stream_id)
+    url = base_url + "/%s/resume" % (stream_id)
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -437,16 +447,17 @@ def start(module,base_url,api_token,stream_id):
 
     return info['status'], info['msg'], content, url
 
-def pause(module,base_url,api_token,stream_id):
+
+def pause(module, base_url, api_token, stream_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
-    url = base_url+"/%s/pause" % (stream_id)
+    url = base_url + "/%s/pause" % (stream_id)
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -455,19 +466,20 @@ def pause(module,base_url,api_token,stream_id):
 
     return info['status'], info['msg'], content, url
 
-def list(module,base_url,api_token,stream_id):
+
+def list(module, base_url, api_token, stream_id):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
     if stream_id is not None:
-        url = base_url+"/%s" % (stream_id)
+        url = base_url + "/%s" % (stream_id)
     else:
         url = base_url
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -476,7 +488,8 @@ def list(module,base_url,api_token,stream_id):
 
     return info['status'], info['msg'], content, url
 
-def query_streams(module,base_url,api_token,stream_name):
+
+def query_streams(module, base_url, api_token, stream_name):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -485,7 +498,7 @@ def query_streams(module,base_url,api_token,stream_name):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -500,13 +513,14 @@ def query_streams(module,base_url,api_token,stream_name):
         while i < len(streams['streams']):
             stream = streams['streams'][i]
             if stream_name == stream['title']:
-                 stream_id = stream['id']
-                 break
+                stream_id = stream['id']
+                break
             i += 1
 
     return stream_id
 
-def default_index_set(module,endpoint,base_url,api_token):
+
+def default_index_set(module, endpoint, base_url, api_token):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
@@ -515,7 +529,7 @@ def default_index_set(module,endpoint,base_url,api_token):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -529,7 +543,8 @@ def default_index_set(module,endpoint,base_url,api_token):
 
     return default_index_set_id
 
-def get_token(module,endpoint,username,password):
+
+def get_token(module, endpoint, username, password):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" }'
 
@@ -543,7 +558,7 @@ def get_token(module,endpoint,username,password):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ( "Status: "+str(info['msg']) + ", Message: " + str(info['body'])))
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
         content = response.read()
@@ -551,30 +566,32 @@ def get_token(module,endpoint,username,password):
     except AttributeError:
         content = info.pop('body', '')
 
-    session_token = base64.b64encode(session['session_id']+":session")
+    session_token = base64.b64encode(session['session_id'] + ":session")
 
     return session_token
 
+
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
-            endpoint      = dict(type='str', default=None),
-            graylog_user       = dict(type='str', default=None),
-            graylog_password       = dict(type='str', no_log=True),
-            action         = dict(type='str', required=False, default='list', choices=['create', 'create_rule', 'start', 'pause', 'update', 'update_rule', 'delete', 'delete_rule', 'list', 'query_streams']),
-            stream_id     = dict(type='str', default=None),
-            stream_name     = dict(type='str', default=None),
-            rule_id     = dict(type='str', default=None),
-            title     = dict(type='str', default=None),
-            field     = dict(type='str', default=None),
-            type     = dict(type='int', default=1),
-            value     = dict(type='str', default=None),
-            index_set_id     = dict(type='str', default=None),
-            inverted     = dict(type='bool', default=False),
-            description       = dict(type='str', default=None),
-            remove_matches_from_default_stream       = dict(type='bool', default=False),
-            matching_type       = dict(type='str', default=None),
-            rules       = dict(type='list', default=None)
+        argument_spec=dict(
+            endpoint=dict(type='str', default=None),
+            graylog_user=dict(type='str', default=None),
+            graylog_password=dict(type='str', no_log=True),
+            action=dict(type='str', required=False, default='list', choices=['create', 'create_rule', 'start', 'pause',
+                        'update', 'update_rule', 'delete', 'delete_rule', 'list', 'query_streams']),
+            stream_id=dict(type='str', default=None),
+            stream_name=dict(type='str', default=None),
+            rule_id=dict(type='str', default=None),
+            title=dict(type='str', default=None),
+            field=dict(type='str', default=None),
+            type=dict(type='int', default=1),
+            value=dict(type='str', default=None),
+            index_set_id=dict(type='str', default=None),
+            inverted=dict(type='bool', default=False),
+            description=dict(type='str', default=None),
+            remove_matches_from_default_stream=dict(type='bool', default=False),
+            matching_type=dict(type='str', default=None),
+            rules=dict(type='list', default=None)
         )
     )
 
@@ -598,31 +615,33 @@ def main():
 
     base_url = "https://%s/api/streams" % (endpoint)
 
-    api_token = get_token(module,endpoint,graylog_user,graylog_password)
+    api_token = get_token(module, endpoint, graylog_user, graylog_password)
 
     if action == "create":
         if index_set_id is None:
-            index_set_id = default_index_set(module,endpoint,base_url,api_token)
-        status, message, content, url = create(module,base_url,api_token,title,description,remove_matches_from_default_stream,matching_type,rules,index_set_id)
+            index_set_id = default_index_set(module, endpoint, base_url, api_token)
+        status, message, content, url = create(module, base_url, api_token, title, description, remove_matches_from_default_stream,
+                                               matching_type, rules, index_set_id)
     elif action == "create_rule":
-        status, message, content, url = create_rule(module,base_url,api_token,stream_id,field,type,value,inverted,description)
+        status, message, content, url = create_rule(module, base_url, api_token, stream_id, field, type, value, inverted, description)
     elif action == "update":
-        status, message, content, url = update(module,base_url,api_token,stream_id,title,description,remove_matches_from_default_stream,matching_type,rules,index_set_id)
+        status, message, content, url = update(module, base_url, api_token, stream_id, title, description, remove_matches_from_default_stream,
+                                               matching_type, rules, index_set_id)
     elif action == "update_rule":
-        status, message, content, url = update_rule(module,base_url,api_token,stream_id,rule_id,field,type,value,inverted,description)
+        status, message, content, url = update_rule(module, base_url, api_token, stream_id, rule_id, field, type, value, inverted, description)
     elif action == "delete":
-        status, message, content, url = delete(module,base_url,api_token,stream_id)
+        status, message, content, url = delete(module, base_url, api_token, stream_id)
     elif action == "delete_rule":
-        status, message, content, url = delete_rule(module,base_url,api_token,stream_id,rule_id)
+        status, message, content, url = delete_rule(module, base_url, api_token, stream_id, rule_id)
     elif action == "start":
-        status, message, content, url = start(module,base_url,api_token,stream_id)
+        status, message, content, url = start(module, base_url, api_token, stream_id)
     elif action == "pause":
-        status, message, content, url = pause(module,base_url,api_token,stream_id)
+        status, message, content, url = pause(module, base_url, api_token, stream_id)
     elif action == "list":
-        status, message, content, url = list(module,base_url,api_token,stream_id)
+        status, message, content, url = list(module, base_url, api_token, stream_id)
     elif action == "query_streams":
-        stream_id = query_streams(module,base_url,api_token,stream_name)
-        status, message, content, url = list(module,base_url,api_token,stream_id)
+        stream_id = query_streams(module, base_url, api_token, stream_name)
+        status, message, content, url = list(module, base_url, api_token, stream_id)
 
     uresp = {}
     content = to_text(content, encoding='UTF-8')
@@ -639,11 +658,13 @@ def main():
 
     module.exit_json(**uresp)
 
+
 # import module snippets
 import json
 import base64
 from ansible.module_utils.basic import *
 from ansible.module_utils.urls import *
+
 
 if __name__ == '__main__':
     main()
