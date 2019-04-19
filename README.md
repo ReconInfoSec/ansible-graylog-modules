@@ -50,6 +50,10 @@ The following modules are available with the corresponding actions:
   * delete
   * list
   * query_index_sets - query by index set name (ie: to get index set ID)
+* graylog_collector_configurations
+  * list_configurations
+  * query_collector_configurations
+  * update_snippet
 
 ### Examples
 
