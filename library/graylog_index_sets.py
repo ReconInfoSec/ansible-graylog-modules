@@ -5,7 +5,7 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'metadata_version': '1.0',
+ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
@@ -14,51 +14,44 @@ module: graylog_index_sets
 short_description: Communicate with the Graylog API to manage index sets
 description:
     - The Graylog index sets module manages Graylog index sets
-version_added: "1.0"
+version_added: "2.9"
 author: "Whitney Champion (@shortstack)"
 options:
   endpoint:
     description:
       - Graylog endoint. (i.e. graylog.mydomain.com).
     required: false
-    default: None
   graylog_user:
     description:
       - Graylog privileged user username.
     required: false
-    default: None
   graylog_password:
     description:
       - Graylog privileged user password.
     required: false
-    default: None
   action:
     description:
       - Action to take against index API.
     required: false
     default: list
     choices: [ create, update, list, delete, query_index_sets ]
-  id:
+  index_set_id:
     description:
       - Index id.
     required: false
-    default: None
   title:
     description:
       - Title.
     required: false
-    default: None
   description:
     description:
       - Description.
     required: false
-    default: None
   index_prefix:
     description:
       - A unique prefix used in Elasticsearch indices belonging to this index set. The prefix must start
         with a letter or number, and can only contain letters, numbers, '_', '-' and '+'.
     required: false
-    default: None
   index_analyzer:
     description:
       - Elasticsearch analyzer for this index set.
@@ -76,25 +69,25 @@ options:
     default: 1
   rotation_strategy_class:
     description:
-      - Rotation strategy class, ex: org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategy
+      - Rotation strategy class, ex. org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategy
     required: false
     default: "org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategy"
   retention_strategy_class:
     description:
-      - Retention strategy class, ex: org.graylog2.indexer.retention.strategies.DeletionRetentionStrategy
+      - Retention strategy class, ex. org.graylog2.indexer.retention.strategies.DeletionRetentionStrategy
     required: false
     default: "org.graylog2.indexer.retention.strategies.DeletionRetentionStrategy"
   rotation_strategy:
     description:
       - Graylog uses multiple indices to store documents in. You can configure the strategy it uses to determine
-        when to rotate the currently active write index.
+         when to rotate the currently active write index.
     required: false
-    default: dict(type='org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategyConfig', rotation_period='P1D')
+    default: {'type': 'org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategyConfig', 'rotation_period': 'P1D'}
   retention_strategy:
     description:
       - Graylog uses a retention strategy to clean up old indices.
     required: false
-    default: dict(type='org.graylog2.indexer.retention.strategies.DeletionRetentionStrategyConfig', max_number_of_indices=14)
+    default: {'type': 'org.graylog2.indexer.retention.strategies.DeletionRetentionStrategyConfig', 'max_number_of_indices': 14}
   index_optimization_max_num_segments:
     description:
       - Maximum number of segments per Elasticsearch index after optimization (force merge).
@@ -140,14 +133,13 @@ EXAMPLES = '''
          let dns_query_intel = threat_intel_lookup_domain(to_string($message.dns_query), "dns_query");
          set_fields(dns_query_intel);
       end
-
 '''
 
-RETURN = r'''
+RETURN = '''
 json:
   description: The JSON response from the Graylog API
   returned: always
-  type: complex
+  type: str
 msg:
   description: The HTTP message from the request
   returned: always
@@ -166,11 +158,17 @@ url:
 '''
 
 
-def create(module, base_url, api_token, title, description, index_prefix, index_analyzer, shards, replicas,
+# import module snippets
+import json
+import datetime
+import base64
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.urls import fetch_url, to_text
+
+
+def create(module, base_url, headers, title, description, index_prefix, index_analyzer, shards, replicas,
            rotation_strategy_class, retention_strategy_class, rotation_strategy, retention_strategy,
            index_optimization_max_num_segments, index_optimization_disabled, creation_date, writable, default):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
     url = base_url
 
@@ -220,11 +218,9 @@ def create(module, base_url, api_token, title, description, index_prefix, index_
     return info['status'], info['msg'], content, url
 
 
-def update(module, base_url, api_token, index_set_id, title, description, index_prefix, index_analyzer, shards, replicas,
+def update(module, base_url, headers, index_set_id, title, description, index_prefix, index_analyzer, shards, replicas,
            rotation_strategy_class, retention_strategy_class, rotation_strategy, retention_strategy, index_optimization_max_num_segments,
            index_optimization_disabled, writable, default):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
 
     url = base_url + "/%s" % (index_set_id)
 
@@ -272,9 +268,7 @@ def update(module, base_url, api_token, index_set_id, title, description, index_
     return info['status'], info['msg'], content, url
 
 
-def delete(module, base_url, api_token, index_set_id):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def delete(module, base_url, headers, index_set_id):
 
     url = base_url + "/%s" % (index_set_id)
 
@@ -291,9 +285,7 @@ def delete(module, base_url, api_token, index_set_id):
     return info['status'], info['msg'], content, url
 
 
-def list(module, base_url, api_token, index_set_id):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def list(module, base_url, headers, index_set_id):
 
     if index_set_id is not None:
         url = base_url + "/%s" % (index_set_id)
@@ -313,9 +305,7 @@ def list(module, base_url, api_token, index_set_id):
     return info['status'], info['msg'], content, url
 
 
-def query_index_sets(module, base_url, api_token, title):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def query_index_sets(module, base_url, headers, title):
 
     url = base_url
 
@@ -366,7 +356,9 @@ def get_token(module, endpoint, username, password):
     except AttributeError:
         content = info.pop('body', '')
 
-    session_token = base64.b64encode(session['session_id'] + ":session")
+    session_string = session['session_id'] + ":session"
+    session_bytes = session_string.encode('utf-8')
+    session_token = base64.b64encode(session_bytes)
 
     return session_token
 
@@ -374,14 +366,14 @@ def get_token(module, endpoint, username, password):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            endpoint=dict(type='str', default=None),
-            graylog_user=dict(type='str', default=None),
+            endpoint=dict(type='str'),
+            graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
             action=dict(type='str', required=False, default='list', choices=['create', 'update', 'delete', 'list', 'query_index_sets']),
-            title=dict(type='str', default=None),
-            description=dict(type='str', default=None),
-            index_set_id=dict(type='str', default=None),
-            index_prefix=dict(type='str', default=None),
+            title=dict(type='str'),
+            description=dict(type='str'),
+            index_set_id=dict(type='str'),
+            index_prefix=dict(type='str'),
             index_analyzer=dict(type='str', default="standard"),
             shards=dict(type='int', default=4),
             replicas=dict(type='int', default=1),
@@ -423,30 +415,32 @@ def main():
     base_url = "https://%s/api/system/indices/index_sets" % (endpoint)
 
     api_token = get_token(module, endpoint, graylog_user, graylog_password)
+    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \
+                "Authorization": "Basic ' + api_token.decode() + '" }'
 
     if action == "create":
-        status, message, content, url = create(module, base_url, api_token, title, description, index_prefix,
+        status, message, content, url = create(module, base_url, headers, title, description, index_prefix,
                                                index_analyzer, shards, replicas, rotation_strategy_class, retention_strategy_class, rotation_strategy,
                                                retention_strategy, index_optimization_max_num_segments, index_optimization_disabled, creation_date,
                                                writable, default)
     elif action == "update":
-        status, message, content, url = update(module, base_url, api_token, index_set_id, title, description, index_prefix, index_analyzer,
+        status, message, content, url = update(module, base_url, headers, index_set_id, title, description, index_prefix, index_analyzer,
                                                shards, replicas, rotation_strategy_class, retention_strategy_class, rotation_strategy, retention_strategy,
                                                index_optimization_max_num_segments, index_optimization_disabled, writable, default)
     elif action == "delete":
-        status, message, content, url = delete(module, base_url, api_token, index_set_id)
+        status, message, content, url = delete(module, base_url, headers, index_set_id)
     elif action == "list":
-        status, message, content, url = list(module, base_url, api_token, index_set_id)
+        status, message, content, url = list(module, base_url, headers, index_set_id)
     elif action == "query_index_sets":
-        index_set_id = query_index_sets(module, base_url, api_token, title)
-        status, message, content, url = list(module, base_url, api_token, index_set_id)
+        index_set_id = query_index_sets(module, base_url, headers, title)
+        status, message, content, url = list(module, base_url, headers, index_set_id)
 
     uresp = {}
     content = to_text(content, encoding='UTF-8')
 
     try:
         js = json.loads(content)
-    except ValueError, e:
+    except ValueError:
         js = ""
 
     uresp['json'] = js
@@ -455,14 +449,6 @@ def main():
     uresp['url'] = url
 
     module.exit_json(**uresp)
-
-
-# import module snippets
-import json
-import datetime
-import base64
-from ansible.module_utils.basic import *
-from ansible.module_utils.urls import *
 
 
 if __name__ == '__main__':

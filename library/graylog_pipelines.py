@@ -5,7 +5,7 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-ANSIBLE_METADATA = {'metadata_version': '1.0',
+ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'status': ['preview'],
                     'supported_by': 'community'}
 
@@ -14,24 +14,21 @@ module: graylog_pipelines
 short_description: Communicate with the Graylog API to manage pipelines
 description:
     - The Graylog pipelines module manages Graylog pipelines
-version_added: "1.0"
+version_added: "2.9"
 author: "Whitney Champion (@shortstack)"
 options:
   endpoint:
     description:
       - Graylog endoint. (i.e. graylog.mydomain.com).
     required: false
-    default: None
   graylog_user:
     description:
       - Graylog privileged user username.
     required: false
-    default: None
   graylog_password:
     description:
       - Graylog privileged user password.
     required: false
-    default: None
   action:
     description:
       - Action to take against pipeline API.
@@ -43,42 +40,34 @@ options:
     description:
       - Pipeline id.
     required: false
-    default: None
   pipeline_name:
     description:
       - Pipeline name.
     required: false
-    default: None
   stream_ids:
     description:
       - Stream id.
     required: false
-    default: None
   rule_id:
     description:
       - Rule id.
     required: false
-    default: None
   rule_name:
     description:
       - Rule name.
     required: false
-    default: None
   title:
     description:
       - Title.
     required: false
-    default: None
   description:
     description:
       - Description.
     required: false
-    default: None
   source:
     description:
       - Rule source.
     required: false
-    default: None
 '''
 
 EXAMPLES = '''
@@ -173,11 +162,11 @@ EXAMPLES = '''
     stream_ids: []
 '''
 
-RETURN = r'''
+RETURN = '''
 json:
   description: The JSON response from the Graylog API
   returned: always
-  type: complex
+  type: str
 msg:
   description: The HTTP message from the request
   returned: always
@@ -196,9 +185,14 @@ url:
 '''
 
 
-def create(module, pipeline_url, api_token, title, description, source):
+# import module snippets
+import json
+import base64
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.urls import fetch_url, to_text
 
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+
+def create(module, pipeline_url, headers, title, description, source):
 
     url = pipeline_url
 
@@ -224,9 +218,7 @@ def create(module, pipeline_url, api_token, title, description, source):
     return info['status'], info['msg'], content, url
 
 
-def create_connection(module, connection_url, api_token, pipeline_id, stream_ids):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def create_connection(module, connection_url, headers, pipeline_id, stream_ids):
 
     url = connection_url + "/to_pipeline"
 
@@ -250,9 +242,7 @@ def create_connection(module, connection_url, api_token, pipeline_id, stream_ids
     return info['status'], info['msg'], content, url
 
 
-def parse_rule(module, rule_url, api_token, source):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def parse_rule(module, rule_url, headers, source):
 
     url = rule_url + "/parse"
 
@@ -274,9 +264,7 @@ def parse_rule(module, rule_url, api_token, source):
     return info['status'], info['msg'], content, url
 
 
-def create_rule(module, rule_url, api_token, title, description, source):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def create_rule(module, rule_url, headers, title, description, source):
 
     url = rule_url
 
@@ -302,9 +290,7 @@ def create_rule(module, rule_url, api_token, title, description, source):
     return info['status'], info['msg'], content, url
 
 
-def update(module, pipeline_url, api_token, pipeline_id, title, description, source):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def update(module, pipeline_url, headers, pipeline_id, title, description, source):
 
     payload = {}
 
@@ -348,9 +334,7 @@ def update(module, pipeline_url, api_token, pipeline_id, title, description, sou
     return info['status'], info['msg'], content, url
 
 
-def update_connection(module, connection_url, api_token, pipeline_id, stream_ids):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def update_connection(module, connection_url, headers, pipeline_id, stream_ids):
 
     url = connection_url + "/to_pipeline"
 
@@ -374,9 +358,7 @@ def update_connection(module, connection_url, api_token, pipeline_id, stream_ids
     return info['status'], info['msg'], content, url
 
 
-def update_rule(module, rule_url, api_token, rule_id, title, description, source):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def update_rule(module, rule_url, headers, rule_id, title, description, source):
 
     url = rule_url + "/%s" % (rule_id)
 
@@ -402,9 +384,7 @@ def update_rule(module, rule_url, api_token, rule_id, title, description, source
     return info['status'], info['msg'], content, url
 
 
-def delete(module, pipeline_url, api_token, pipeline_id):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def delete(module, pipeline_url, headers, pipeline_id):
 
     url = pipeline_url + "/%s" % (pipeline_id)
 
@@ -421,9 +401,7 @@ def delete(module, pipeline_url, api_token, pipeline_id):
     return info['status'], info['msg'], content, url
 
 
-def delete_rule(module, rule_url, api_token, rule_id):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def delete_rule(module, rule_url, headers, rule_id):
 
     url = rule_url + "/%s" % (rule_id)
 
@@ -440,13 +418,11 @@ def delete_rule(module, rule_url, api_token, rule_id):
     return info['status'], info['msg'], content, url
 
 
-def list(module, pipeline_url, api_token, pipeline_id, query):
+def list(module, pipeline_url, headers, pipeline_id, query):
 
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
-
-    if pipeline_id is not None and pipeline_id is not "":
+    if pipeline_id is not None and pipeline_id != "":
         url = pipeline_url + "/%s" % (pipeline_id)
-    elif query == "yes" and pipeline_id is "":
+    elif query == "yes" and pipeline_id == "":
         url = pipeline_url + "/0"
     else:
         url = pipeline_url
@@ -464,13 +440,11 @@ def list(module, pipeline_url, api_token, pipeline_id, query):
     return info['status'], info['msg'], content, url
 
 
-def list_rules(module, rule_url, api_token, rule_id, query):
+def list_rules(module, rule_url, headers, rule_id, query):
 
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
-
-    if rule_id is not None and rule_id is not "":
+    if rule_id is not None and rule_id != "":
         url = rule_url + "/%s" % (rule_id)
-    elif query == "yes" and rule_id is "":
+    elif query == "yes" and rule_id == "":
         url = rule_url + "/0"
     else:
         url = rule_url
@@ -488,9 +462,7 @@ def list_rules(module, rule_url, api_token, rule_id, query):
     return info['status'], info['msg'], content, url
 
 
-def query_pipelines(module, pipeline_url, api_token, pipeline_name):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def query_pipelines(module, pipeline_url, headers, pipeline_name):
 
     url = pipeline_url
 
@@ -519,9 +491,7 @@ def query_pipelines(module, pipeline_url, api_token, pipeline_name):
     return pipeline_id
 
 
-def query_rules(module, rule_url, api_token, rule_name):
-
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", "Authorization": "Basic %s" }' % (api_token)
+def query_rules(module, rule_url, headers, rule_name):
 
     url = rule_url
 
@@ -572,7 +542,9 @@ def get_token(module, endpoint, username, password):
     except AttributeError:
         content = info.pop('body', '')
 
-    session_token = base64.b64encode(session['session_id'] + ":session")
+    session_string = session['session_id'] + ":session"
+    session_bytes = session_string.encode('utf-8')
+    session_token = base64.b64encode(session_bytes)
 
     return session_token
 
@@ -580,20 +552,20 @@ def get_token(module, endpoint, username, password):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            endpoint=dict(type='str', default=None),
-            graylog_user=dict(type='str', default=None),
+            endpoint=dict(type='str'),
+            graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
             action=dict(type='str', required=False, default='list',
                         choices=['create', 'create_connection', 'parse_rule', 'create_rule', 'update', 'update_connection',
                                  'update_rule', 'delete', 'delete_rule', 'list', 'list_rules', 'query_rules', 'query_pipelines']),
-            pipeline_id=dict(type='str', default=None),
-            pipeline_name=dict(type='str', default=None),
-            rule_id=dict(type='str', default=None),
-            rule_name=dict(type='str', default=None),
-            stream_ids=dict(type='list', default=None),
-            title=dict(type='str', default=None),
-            description=dict(type='str', default=None),
-            source=dict(type='str', default=None)
+            pipeline_id=dict(type='str'),
+            pipeline_name=dict(type='str'),
+            rule_id=dict(type='str'),
+            rule_name=dict(type='str'),
+            stream_ids=dict(type='list'),
+            title=dict(type='str'),
+            description=dict(type='str'),
+            source=dict(type='str')
         )
     )
 
@@ -615,46 +587,48 @@ def main():
     connection_url = "https://%s/api/system/pipelines/connections" % (endpoint)
 
     api_token = get_token(module, endpoint, graylog_user, graylog_password)
+    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \
+                "Authorization": "Basic ' + api_token.decode() + '" }'
 
     if action == "create":
-        status, message, content, url = create(module, pipeline_url, api_token, title, description, source)
+        status, message, content, url = create(module, pipeline_url, headers, title, description, source)
     elif action == "parse_rule":
-        status, message, content, url = parse_rule(module, rule_url, api_token, source)
+        status, message, content, url = parse_rule(module, rule_url, headers, source)
     elif action == "create_rule":
-        status, message, content, url = create_rule(module, rule_url, api_token, title, description, source)
+        status, message, content, url = create_rule(module, rule_url, headers, title, description, source)
     elif action == "create_connection":
-        status, message, content, url = create_connection(module, connection_url, api_token, pipeline_id, stream_ids)
+        status, message, content, url = create_connection(module, connection_url, headers, pipeline_id, stream_ids)
     elif action == "update":
-        status, message, content, url = update(module, pipeline_url, api_token, pipeline_id, title, description, source)
+        status, message, content, url = update(module, pipeline_url, headers, pipeline_id, title, description, source)
     elif action == "update_connection":
-        status, message, content, url = update_connection(module, connection_url, api_token, pipeline_id, stream_ids)
+        status, message, content, url = update_connection(module, connection_url, headers, pipeline_id, stream_ids)
     elif action == "update_rule":
-        status, message, content, url = update_rule(module, rule_url, api_token, rule_id, title, description, source)
+        status, message, content, url = update_rule(module, rule_url, headers, rule_id, title, description, source)
     elif action == "delete":
-        status, message, content, url = delete(module, pipeline_url, api_token, pipeline_id)
+        status, message, content, url = delete(module, pipeline_url, headers, pipeline_id)
     elif action == "delete_rule":
-        status, message, content, url = delete_rule(module, rule_url, api_token, rule_id)
+        status, message, content, url = delete_rule(module, rule_url, headers, rule_id)
     elif action == "list":
         query = "no"
-        status, message, content, url = list(module, pipeline_url, api_token, pipeline_id, query)
+        status, message, content, url = list(module, pipeline_url, headers, pipeline_id, query)
     elif action == "query_pipelines":
-        pipeline_id = query_pipelines(module, pipeline_url, api_token, pipeline_name)
+        pipeline_id = query_pipelines(module, pipeline_url, headers, pipeline_name)
         query = "yes"
-        status, message, content, url = list(module, pipeline_url, api_token, pipeline_id, query)
+        status, message, content, url = list(module, pipeline_url, headers, pipeline_id, query)
     elif action == "list_rules":
         query = "no"
-        status, message, content, url = list_rules(module, rule_url, api_token, rule_id, query)
+        status, message, content, url = list_rules(module, rule_url, headers, rule_id, query)
     elif action == "query_rules":
-        rule_id = query_rules(module, rule_url, api_token, rule_name)
+        rule_id = query_rules(module, rule_url, headers, rule_name)
         query = "yes"
-        status, message, content, url = list_rules(module, rule_url, api_token, rule_id, query)
+        status, message, content, url = list_rules(module, rule_url, headers, rule_id, query)
 
     uresp = {}
     content = to_text(content, encoding='UTF-8')
 
     try:
         js = json.loads(content)
-    except ValueError, e:
+    except ValueError:
         js = ""
 
     uresp['json'] = js
@@ -663,13 +637,6 @@ def main():
     uresp['url'] = url
 
     module.exit_json(**uresp)
-
-
-# import module snippets
-import json
-import base64
-from ansible.module_utils.basic import *
-from ansible.module_utils.urls import *
 
 
 if __name__ == '__main__':
