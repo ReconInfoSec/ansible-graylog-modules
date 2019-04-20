@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# (c) 2019, Whitney Champion <whitney.ellis.champion@gmail.com>
+# Copyright: (c) 2019, Whitney Champion <whitney.ellis.champion@gmail.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
@@ -13,7 +13,7 @@ DOCUMENTATION = '''
 module: graylog_collector_configurations
 short_description: Communicate with the Graylog API to manage collector configurations
 description:
-    - The Graylog collector_configurations module manages Graylog collector configurations
+    - The Graylog collector_configurations module manages Graylog collector configurations.
 version_added: "2.9"
 author: "Whitney Champion (@shortstack)"
 options:
@@ -21,10 +21,12 @@ options:
     description:
       - Graylog endoint. (i.e. graylog.mydomain.com).
     required: false
+    type: str
   graylog_user:
     description:
       - Graylog privileged user username.
     required: false
+    type: str
   graylog_password:
     description:
       - Graylog privileged user password.
@@ -123,9 +125,9 @@ from ansible.module_utils.urls import fetch_url, to_text
 def list_configurations(module, configuration_url, headers, configuration_id, query):
 
     if configuration_id is not None and configuration_id != "":
-        url = configuration_url + "/%s" % (configuration_id)
+        url = "/".join([configuration_url, configuration_id])
     elif query == "yes" and configuration_id == "":
-        url = configuration_url + "/0"
+        url = "/".join([configuration_url, "0"])
     else:
         url = configuration_url
 
@@ -135,7 +137,7 @@ def list_configurations(module, configuration_url, headers, configuration_id, qu
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
     except AttributeError:
         content = info.pop('body', '')
 
@@ -152,7 +154,7 @@ def query_collector_configurations(module, configuration_url, headers, configura
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
         collector_configurations = json.loads(content)
     except AttributeError:
         content = info.pop('body', '')
@@ -173,7 +175,7 @@ def query_collector_configurations(module, configuration_url, headers, configura
 
 def query_snippets(module, configuration_url, headers, configuration_id, snippet_name):
 
-    url = configuration_url + "/%s" % (configuration_id)
+    url = "/".join([configuration_url, configuration_id])
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
@@ -181,7 +183,7 @@ def query_snippets(module, configuration_url, headers, configuration_id, snippet
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
         configuration = json.loads(content)
         snippets = configuration['snippets']
     except AttributeError:
@@ -201,18 +203,15 @@ def query_snippets(module, configuration_url, headers, configuration_id, snippet
     return snippet_id
 
 
-def update_snippet(module, configuration_url, headers, configuration_id, snippet_id, snippet_name, snippet_source, backend):
+def update_snippet(module, configuration_url, headers, configuration_id, snippet_id):
 
-    url = configuration_url + "/%s/snippets/%s" % (configuration_id, snippet_id)
+    url = "/".join([configuration_url, configuration_id, "snippets", snippet_id])
 
     payload = {}
 
-    if backend is not None:
-        payload['backend'] = backend
-    if snippet_name is not None:
-        payload['name'] = snippet_name
-    if snippet_source is not None:
-        payload['snippet'] = snippet_source
+    for key in ['backend', 'snippet_name', 'snippet_source']:
+        if module.params[key] is not None:
+            payload[key] = module.params[key]
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
@@ -220,7 +219,7 @@ def update_snippet(module, configuration_url, headers, configuration_id, snippet
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
     except AttributeError:
         content = info.pop('body', '')
 
@@ -233,10 +232,11 @@ def get_token(module, endpoint, username, password):
 
     url = "https://%s/api/system/sessions" % (endpoint)
 
-    payload = {}
-    payload['username'] = username
-    payload['password'] = password
-    payload['host'] = endpoint
+    payload = {
+        'username': username,
+        'password': password,
+        'host': endpoint
+    }
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
@@ -244,7 +244,7 @@ def get_token(module, endpoint, username, password):
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
         session = json.loads(content)
     except AttributeError:
         content = info.pop('body', '')
@@ -296,8 +296,7 @@ def main():
     elif action == "update_snippet":
         configuration_id = query_collector_configurations(module, configuration_url, headers, configuration_name)
         snippet_id = query_snippets(module, configuration_url, headers, configuration_id, snippet_name)
-        status, message, content, url = update_snippet(module, configuration_url, headers, configuration_id, snippet_id,
-                                                        snippet_name, snippet_source, backend)
+        status, message, content, url = update_snippet(module, configuration_url, headers, configuration_id, snippet_id)
     elif action == "query_collector_configurations":
         configuration_id = query_collector_configurations(module, configuration_url, headers, configuration_name)
         query = "yes"

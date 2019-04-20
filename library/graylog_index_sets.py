@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# (c) 2019, Whitney Champion <whitney.ellis.champion@gmail.com>
+# Copyright: (c) 2019, Whitney Champion <whitney.ellis.champion@gmail.com>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
@@ -13,7 +13,7 @@ DOCUMENTATION = '''
 module: graylog_index_sets
 short_description: Communicate with the Graylog API to manage index sets
 description:
-    - The Graylog index sets module manages Graylog index sets
+    - The Graylog index sets module manages Graylog index sets.
 version_added: "2.9"
 author: "Whitney Champion (@shortstack)"
 options:
@@ -21,10 +21,12 @@ options:
     description:
       - Graylog endoint. (i.e. graylog.mydomain.com).
     required: false
+    type: str
   graylog_user:
     description:
       - Graylog privileged user username.
     required: false
+    type: str
   graylog_password:
     description:
       - Graylog privileged user password.
@@ -67,6 +69,7 @@ options:
       - Number of Elasticsearch replicas used per index in this index set.
     required: false
     default: 1
+    type: int
   rotation_strategy_class:
     description:
       - Rotation strategy class, ex. org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategy
@@ -98,6 +101,7 @@ options:
       - Disable Elasticsearch index optimization (force merge) after rotation.
     required: false
     default: False
+    type: bool
   writable:
     description:
       - Writable, true or false.
@@ -166,44 +170,18 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url, to_text
 
 
-def create(module, base_url, headers, title, description, index_prefix, index_analyzer, shards, replicas,
-           rotation_strategy_class, retention_strategy_class, rotation_strategy, retention_strategy,
-           index_optimization_max_num_segments, index_optimization_disabled, creation_date, writable, default):
+def create(module, base_url, headers):
 
     url = base_url
 
     payload = {}
 
-    if title is not None:
-        payload['title'] = title
-    if description is not None:
-        payload['description'] = description
-    if index_prefix is not None:
-        payload['index_prefix'] = index_prefix
-    if creation_date is not None:
-        payload['creation_date'] = creation_date
-    if writable is not None:
-        payload['writable'] = writable
-    if default is not None:
-        payload['default'] = default
-    if index_analyzer is not None:
-        payload['index_analyzer'] = index_analyzer
-    if shards is not None:
-        payload['shards'] = shards
-    if replicas is not None:
-        payload['replicas'] = replicas
-    if rotation_strategy_class is not None:
-        payload['rotation_strategy_class'] = rotation_strategy_class
-    if retention_strategy_class is not None:
-        payload['retention_strategy_class'] = retention_strategy_class
-    if rotation_strategy is not None:
-        payload['rotation_strategy'] = rotation_strategy
-    if retention_strategy is not None:
-        payload['retention_strategy'] = retention_strategy
-    if index_optimization_max_num_segments is not None:
-        payload['index_optimization_max_num_segments'] = index_optimization_max_num_segments
-    if index_optimization_disabled is not None:
-        payload['index_optimization_disabled'] = index_optimization_disabled
+    for key in ['title', 'description', 'index_prefix', 'creation_date', 'writable', 'default',
+                'index_analyzer', 'shards', 'replicas', 'rotation_strategy_class', 'retention_strategy_class',
+                'rotation_strategy', 'retention_strategy', 'index_optimization_max_num_segments',
+                'index_optimization_disabled']:
+        if module.params[key] is not None:
+            payload[key] = module.params[key]
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
@@ -211,49 +189,25 @@ def create(module, base_url, headers, title, description, index_prefix, index_an
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
     except AttributeError:
         content = info.pop('body', '')
 
     return info['status'], info['msg'], content, url
 
 
-def update(module, base_url, headers, index_set_id, title, description, index_prefix, index_analyzer, shards, replicas,
-           rotation_strategy_class, retention_strategy_class, rotation_strategy, retention_strategy, index_optimization_max_num_segments,
-           index_optimization_disabled, writable, default):
+def update(module, base_url, headers):
 
-    url = base_url + "/%s" % (index_set_id)
+    url = "/".join([base_url, module.params['index_set_id']])
 
     payload = {}
 
-    if title is not None:
-        payload['title'] = title
-    if description is not None:
-        payload['description'] = description
-    if index_prefix is not None:
-        payload['index_prefix'] = index_prefix
-    if writable is not None:
-        payload['writable'] = writable
-    if default is not None:
-        payload['default'] = default
-    if index_analyzer is not None:
-        payload['index_analyzer'] = index_analyzer
-    if shards is not None:
-        payload['shards'] = shards
-    if replicas is not None:
-        payload['replicas'] = replicas
-    if rotation_strategy_class is not None:
-        payload['rotation_strategy_class'] = rotation_strategy_class
-    if retention_strategy_class is not None:
-        payload['retention_strategy_class'] = retention_strategy_class
-    if rotation_strategy is not None:
-        payload['rotation_strategy'] = rotation_strategy
-    if retention_strategy is not None:
-        payload['retention_strategy'] = retention_strategy
-    if index_optimization_max_num_segments is not None:
-        payload['index_optimization_max_num_segments'] = index_optimization_max_num_segments
-    if index_optimization_disabled is not None:
-        payload['index_optimization_disabled'] = index_optimization_disabled
+    for key in ['title', 'description', 'index_prefix', 'writable', 'default',
+                'index_analyzer', 'shards', 'replicas', 'rotation_strategy_class', 'retention_strategy_class',
+                'rotation_strategy', 'retention_strategy', 'index_optimization_max_num_segments',
+                'index_optimization_disabled']:
+        if module.params[key] is not None:
+            payload[key] = module.params[key]
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
@@ -261,7 +215,7 @@ def update(module, base_url, headers, index_set_id, title, description, index_pr
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
     except AttributeError:
         content = info.pop('body', '')
 
@@ -278,7 +232,7 @@ def delete(module, base_url, headers, index_set_id):
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
     except AttributeError:
         content = info.pop('body', '')
 
@@ -298,7 +252,7 @@ def list(module, base_url, headers, index_set_id):
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
     except AttributeError:
         content = info.pop('body', '')
 
@@ -315,7 +269,7 @@ def query_index_sets(module, base_url, headers, title):
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
         index_sets = json.loads(content)
     except AttributeError:
         content = info.pop('body', '')
@@ -340,10 +294,11 @@ def get_token(module, endpoint, username, password):
 
     url = "https://%s/api/system/sessions" % (endpoint)
 
-    payload = {}
-    payload['username'] = username
-    payload['password'] = password
-    payload['host'] = endpoint
+    payload = {
+        'username': username,
+        'password': password,
+        'host': endpoint
+    }
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
@@ -351,7 +306,7 @@ def get_token(module, endpoint, username, password):
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
-        content = response.read()
+        content = to_text(response.read(), errors='surrogate_or_strict')
         session = json.loads(content)
     except AttributeError:
         content = info.pop('body', '')
@@ -419,14 +374,9 @@ def main():
                 "Authorization": "Basic ' + api_token.decode() + '" }'
 
     if action == "create":
-        status, message, content, url = create(module, base_url, headers, title, description, index_prefix,
-                                               index_analyzer, shards, replicas, rotation_strategy_class, retention_strategy_class, rotation_strategy,
-                                               retention_strategy, index_optimization_max_num_segments, index_optimization_disabled, creation_date,
-                                               writable, default)
+        status, message, content, url = create(module, base_url, headers)
     elif action == "update":
-        status, message, content, url = update(module, base_url, headers, index_set_id, title, description, index_prefix, index_analyzer,
-                                               shards, replicas, rotation_strategy_class, retention_strategy_class, rotation_strategy, retention_strategy,
-                                               index_optimization_max_num_segments, index_optimization_disabled, writable, default)
+        status, message, content, url = update(module, base_url, headers)
     elif action == "delete":
         status, message, content, url = delete(module, base_url, headers, index_set_id)
     elif action == "list":
