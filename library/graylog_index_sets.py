@@ -31,39 +31,47 @@ options:
     description:
       - Graylog privileged user password.
     required: false
+    type: str
   action:
     description:
       - Action to take against index API.
     required: false
     default: list
     choices: [ create, update, list, delete, query_index_sets ]
+    type: str
   index_set_id:
     description:
       - Index id.
     required: false
+    type: str
   title:
     description:
       - Title.
     required: false
+    type: str
   description:
     description:
       - Description.
     required: false
+    type: str
   index_prefix:
     description:
       - A unique prefix used in Elasticsearch indices belonging to this index set. The prefix must start
         with a letter or number, and can only contain letters, numbers, '_', '-' and '+'.
     required: false
+    type: str
   index_analyzer:
     description:
       - Elasticsearch analyzer for this index set.
     required: false
     default: "standard"
+    type: str
   shards:
     description:
       - Number of Elasticsearch shards used per index in this index set.
     required: false
     default: 4
+    type: int
   replicas:
     description:
       - Number of Elasticsearch replicas used per index in this index set.
@@ -75,27 +83,32 @@ options:
       - Rotation strategy class, ex. org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategy
     required: false
     default: "org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategy"
+    type: str
   retention_strategy_class:
     description:
       - Retention strategy class, ex. org.graylog2.indexer.retention.strategies.DeletionRetentionStrategy
     required: false
     default: "org.graylog2.indexer.retention.strategies.DeletionRetentionStrategy"
+    type: str
   rotation_strategy:
     description:
       - Graylog uses multiple indices to store documents in. You can configure the strategy it uses to determine
          when to rotate the currently active write index.
     required: false
     default: {'type': 'org.graylog2.indexer.rotation.strategies.TimeBasedRotationStrategyConfig', 'rotation_period': 'P1D'}
+    type: dict
   retention_strategy:
     description:
       - Graylog uses a retention strategy to clean up old indices.
     required: false
     default: {'type': 'org.graylog2.indexer.retention.strategies.DeletionRetentionStrategyConfig', 'max_number_of_indices': 14}
+    type: dict
   index_optimization_max_num_segments:
     description:
       - Maximum number of segments per Elasticsearch index after optimization (force merge).
     required: false
     default: 1
+    type: int
   index_optimization_disabled:
     description:
       - Disable Elasticsearch index optimization (force merge) after rotation.
@@ -107,11 +120,13 @@ options:
       - Writable, true or false.
     required: false
     default: True
+    type: bool
   default:
     description:
       - Default index set, true or false.
     required: false
     default: False
+    type: bool
 '''
 
 EXAMPLES = '''
@@ -352,20 +367,6 @@ def main():
     action = module.params['action']
     title = module.params['title']
     index_set_id = module.params['index_set_id']
-    description = module.params['description']
-    index_prefix = module.params['index_prefix']
-    index_analyzer = module.params['index_analyzer']
-    shards = module.params['shards']
-    replicas = module.params['replicas']
-    rotation_strategy_class = module.params['rotation_strategy_class']
-    retention_strategy_class = module.params['retention_strategy_class']
-    rotation_strategy = module.params['rotation_strategy']
-    retention_strategy = module.params['retention_strategy']
-    index_optimization_max_num_segments = module.params['index_optimization_max_num_segments']
-    index_optimization_disabled = module.params['index_optimization_disabled']
-    writable = module.params['writable']
-    default = module.params['default']
-    creation_date = datetime.datetime.utcnow().isoformat() + 'Z'
 
     base_url = "https://%s/api/system/indices/index_sets" % (endpoint)
 

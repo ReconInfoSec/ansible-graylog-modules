@@ -31,36 +31,44 @@ options:
     description:
       - Graylog privileged user password.
     required: false
+    type: str
   action:
     description:
       - Action to take against collector configuration API.
     required: false
     default: list_configurations
     choices: [ list_configurations, query_collector_configurations ]
+    type: str
   configuration_id:
     description:
       - Configuration id.
     required: false
+    type: str
   configuration_name:
     description:
       - Configuration name.
     required: false
+    type: str
   configuration_tags:
     description:
       - Configuration tags.
     required: false
+    type: str
   snippet_name:
     description:
       - Snippet name.
     required: false
+    type: str
   snippet_source:
     description:
       - Snippet source code.
     required: false
+    type: str
   backend:
     description:
       - Snippet backend, ex: winlogbeat, filebeat, nxlog
     required: false
+    type: str
 '''
 
 EXAMPLES = '''
@@ -279,10 +287,7 @@ def main():
     action = module.params['action']
     configuration_id = module.params['configuration_id']
     configuration_name = module.params['configuration_name']
-    configuration_tags = module.params['configuration_tags']
     snippet_name = module.params['snippet_name']
-    snippet_source = module.params['snippet_source']
-    backend = module.params['backend']
 
     configuration_url = "https://%s/api/plugins/org.graylog.plugins.collector/configurations" % (endpoint)
 
