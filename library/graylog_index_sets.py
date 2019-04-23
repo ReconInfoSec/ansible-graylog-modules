@@ -159,11 +159,6 @@ json:
   description: The JSON response from the Graylog API
   returned: always
   type: str
-msg:
-  description: The HTTP message from the request
-  returned: always
-  type: str
-  sample: OK (unknown bytes)
 status:
   description: The HTTP status code from the request
   returned: always
