@@ -195,11 +195,6 @@ json:
           returned: success
           type: str
           sample: 'Threat Detection pipeline'
-      errors:
-          description:
-          returned: success
-          type: str
-          sample: 'Threat Detection'
       id:
           description: Pipeline ID.
           returned: success
