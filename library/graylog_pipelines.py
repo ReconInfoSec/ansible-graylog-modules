@@ -526,7 +526,7 @@ def query_rules(module, rule_url, headers, rule_name):
 
     url = rule_url
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='GET')
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
