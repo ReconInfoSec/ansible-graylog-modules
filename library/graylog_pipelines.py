@@ -245,7 +245,7 @@ def create(module, pipeline_url, headers):
         if module.params[key] is not None:
             payload[key] = module.params[key]
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -291,7 +291,7 @@ def parse_rule(module, rule_url, headers):
         if module.params[key] is not None:
             payload[key] = module.params[key]
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -314,7 +314,7 @@ def create_rule(module, rule_url, headers):
         if module.params[key] is not None:
             payload[key] = module.params[key]
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -356,7 +356,7 @@ def update(module, pipeline_url, headers):
     if module.params['source'] is None:
         payload['source'] = payload_current['source']
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='PUT', data=module.jsonify(payload))
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -402,7 +402,7 @@ def update_rule(module, rule_url, headers):
         if module.params[key] is not None:
             payload[key] = module.params[key]
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', timeout=20, data=module.jsonify(payload))
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -458,7 +458,7 @@ def list(module, pipeline_url, headers, pipeline_id, query):
     else:
         url = pipeline_url
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='GET')
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -480,7 +480,7 @@ def list_rules(module, rule_url, headers, rule_id, query):
     else:
         url = rule_url
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='GET')
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
