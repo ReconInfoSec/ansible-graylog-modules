@@ -178,7 +178,43 @@ RETURN = '''
 json:
   description: The JSON response from the Graylog API
   returned: always
-  type: str
+  type: complex
+  contains:
+      title:
+          description: Pipeline title.
+          returned: success
+          type: str
+          sample: 'Threat Detection'
+      created_at:
+          description: Pipeline creation time.
+          returned: success
+          type: str
+          sample: '2018-10-17T17:53:42.675Z'
+      description:
+          description: Pipeline description.
+          returned: success
+          type: str
+          sample: 'Threat Detection pipeline'
+      id:
+          description: Pipeline ID.
+          returned: success
+          type: str
+          sample: '4a362233815c349e7e2b945c'
+      modified_at:
+          description: Pipeline modified time.
+          returned: success
+          type: str
+          sample: '2018-10-17T18:22:42.599Z'
+      source:
+          description: Pipeline source.
+          returned: success
+          type: str
+          sample: 'pipeline \"Threat Detection\"\nstage 0 match either\nrule \"threat_rules\"\nend'
+      stages:
+          description: Pipeline title.
+          returned: success
+          type: dict
+          sample: '{ "match_all": false, "rules": [ "threat_rules" ], "stage": 0 }'
 status:
   description: The HTTP status code from the request
   returned: always
@@ -209,7 +245,7 @@ def create(module, pipeline_url, headers):
         if module.params[key] is not None:
             payload[key] = module.params[key]
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -255,7 +291,7 @@ def parse_rule(module, rule_url, headers):
         if module.params[key] is not None:
             payload[key] = module.params[key]
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -278,7 +314,7 @@ def create_rule(module, rule_url, headers):
         if module.params[key] is not None:
             payload[key] = module.params[key]
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -313,14 +349,14 @@ def update(module, pipeline_url, headers):
 
     url = "/".join([pipeline_url, module.params['pipeline_id']])
 
-    for key in ['pipeline_id', 'title', 'description', 'source']:
+    for key in ['title', 'description', 'source']:
         if module.params[key] is not None:
             payload[key] = module.params[key]
 
     if module.params['source'] is None:
         payload['source'] = payload_current['source']
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='PUT', data=module.jsonify(payload))
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -366,7 +402,7 @@ def update_rule(module, rule_url, headers):
         if module.params[key] is not None:
             payload[key] = module.params[key]
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', timeout=20, data=module.jsonify(payload))
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -422,7 +458,7 @@ def list(module, pipeline_url, headers, pipeline_id, query):
     else:
         url = pipeline_url
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='GET')
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -444,7 +480,7 @@ def list_rules(module, rule_url, headers, rule_id, query):
     else:
         url = rule_url
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='GET')
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -490,7 +526,7 @@ def query_rules(module, rule_url, headers, rule_name):
 
     url = rule_url
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='GET')
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
