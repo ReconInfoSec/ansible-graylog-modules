@@ -690,6 +690,9 @@ def main():
     index_set_id = module.params['index_set_id']
     inverted = module.params['inverted']
     description = module.params['description']
+    remove_matches_from_default_stream = module.params['remove_matches_from_default_stream']
+    matching_type = module.params['matching_type']
+    rules = module.params['rules']
 
     base_url = "https://%s/api/streams" % (endpoint)
 
