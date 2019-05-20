@@ -70,6 +70,7 @@ options:
       - How often the field type information for the active write index will be updated.
     required: false
     type: int
+    default: 5000
   index_analyzer:
     description:
       - Elasticsearch analyzer for this index set.
