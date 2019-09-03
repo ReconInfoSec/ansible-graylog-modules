@@ -54,6 +54,11 @@ The following modules are available with the corresponding actions:
   * list_configurations
   * query_collector_configurations
   * update_snippet
+* graylog_ldap
+  * get
+  * update
+  * delete
+  * test
 
 ### Examples
 
@@ -262,4 +267,56 @@ The following modules are available with the corresponding actions:
     graylog_password: "{{ graylog_password }}"
     stream_id: "{{ stream.json.id }}"
     index_set_id: "{{ index_set.json.id }}"
+```
+
+#### LDAP configuration
+```
+- name: Setup Active Directory authentication without SSL and set "Reader" as default role
+  graylog_ldap:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    enabled: "true"
+    active_directory: "true"
+    ldap_uri: "ldap://domaincontroller.mydomain.com:389"
+    system_password_set: "true"
+    system_username: "ldapbind@mydomain.com"
+    system_password: "bindPassw0rd"
+    search_base: "cn=users,dc=mydomain,dc=com"
+    search_pattern: "(&(objectClass=user)(sAMAccountName={0}))"    
+    display_name_attribute: "displayName"
+    group_search_base: "cn=groups,dc=mydomain,dc=com"
+    group_search_pattern: "(&(objectClass=group)(cn=graylog*))"
+    group_id_attribute: "cn"
+
+- name: Remove current LDAP authentication configuration
+  graylog_ldap:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    action: "delete"
+
+-name: Get current LDAP authentication configuration
+  graylog_ldap:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"   
+    action: "get"
+  register: currentConfiguration
+
+- name: Print current LDAP authentication configuration
+  debug:
+    msg: "{{ currentConfiguration }}"
+
+- name: Test LDAP bind
+  graylog_ldap:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    action: "test"
+    active_directory: "true"
+    ldap_uri: "ldap://domaincontroller.mydomain.com:389"
+    system_password_set: "true"
+    system_username: "ldapbind@mydomain.com"
+    system_password: "bindPassw0rd"
 ```
