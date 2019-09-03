@@ -40,7 +40,7 @@ options:
     description:
       - Action to take against LDAP API.
     required: true
-    default: list
+    default: get
     choices: [ get, update, delete, test ]
     type: str
   enabled:
@@ -137,6 +137,7 @@ EXAMPLES = '''
     graylog_user: "username"
     graylog_password: "password"
     enabled: "true"
+    action: "update"
     active_directory: "true"
     ldap_uri: "ldap://domaincontroller.mydomain.com:389"
     system_password_set: "true"
@@ -314,7 +315,8 @@ def main():
             endpoint=dict(type='str'),
             graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
-            action=dict(type='str', required=False, default='list', choices=['get','update', 'delete', 'test']),
+            action=dict(type='str', required=False, default='get', 
+                        choices=['get', 'update', 'delete', 'test']),
             allow_http=dict(type='bool', required=False, default=False),
             enabled=dict(type='bool', required=False, default=False),
             active_directory=dict(type='bool', required=False, default=False),
