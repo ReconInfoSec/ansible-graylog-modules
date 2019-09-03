@@ -32,6 +32,12 @@ options:
       - Graylog privileged user password.
     required: false
     type: str
+  allow_http:
+    description:
+      - Allow non HTTPS connexion
+    required: false
+    default: false
+    type: bool    
   action:
     description:
       - Action to take against index API.
@@ -401,7 +407,7 @@ def get_token(module, endpoint, username, password):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" }'
 
-    url = "https://%s/api/system/sessions" % (endpoint)
+    url = endpoint + "/api/system/sessions"
 
     payload = {
         'username': username,
@@ -433,6 +439,7 @@ def main():
             endpoint=dict(type='str'),
             graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
+            allow_http=dict(type='bool', required=False, default=False),
             action=dict(type='str', required=False, default='list', choices=['create', 'update', 'delete', 'list', 'query_index_sets']),
             title=dict(type='str'),
             description=dict(type='str'),
@@ -461,11 +468,17 @@ def main():
     graylog_user = module.params['graylog_user']
     graylog_password = module.params['graylog_password']
     action = module.params['action']
+    allow_http = module.params['allow_http']
     title = module.params['title']
     id = module.params['id']
     creation_date = module.params['creation_date'] or datetime.datetime.utcnow().isoformat() + 'Z'
 
-    base_url = "https://%s/api/system/indices/index_sets" % (endpoint)
+    if allow_http == True:
+      endpoint = "http://" + endpoint
+    else:
+      endpoint = "https://" + endpoint
+
+    base_url = endpoint + "/api/system/indices/index_sets"
 
     api_token = get_token(module, endpoint, graylog_user, graylog_password)
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \

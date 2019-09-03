@@ -32,6 +32,12 @@ options:
       - Graylog privileged user password.
     required: false
     type: str
+  allow_http:
+    description:
+      - Allow non HTTPS connexion
+    required: false
+    default: false
+    type: bool    
   action:
     description:
       - Action to take against role API.
@@ -233,7 +239,7 @@ def get_token(module, endpoint, username, password):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" }'
 
-    url = "https://%s/api/system/sessions" % (endpoint)
+    url = endpoint + "/api/system/sessions"
 
     payload = {
         'username': username,
@@ -265,6 +271,7 @@ def main():
             endpoint=dict(type='str'),
             graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
+            allow_http=dict(type='bool', required=False, default=False),
             action=dict(type='str', default='list', choices=['create', 'update', 'delete', 'list']),
             name=dict(type='str'),
             description=dict(type='str'),
@@ -276,9 +283,15 @@ def main():
     endpoint = module.params['endpoint']
     graylog_user = module.params['graylog_user']
     graylog_password = module.params['graylog_password']
+    allow_http = module.params['allow_http']
     action = module.params['action']
 
-    base_url = "https://%s/api/roles" % (endpoint)
+    if allow_http == True:
+      endpoint = "http://" + endpoint
+    else:
+      endpoint = "https://" + endpoint
+
+    base_url = endpoint + "/api/roles"
 
     api_token = get_token(module, endpoint, graylog_user, graylog_password)
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \

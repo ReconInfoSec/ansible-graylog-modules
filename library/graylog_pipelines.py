@@ -32,6 +32,12 @@ options:
       - Graylog privileged user password.
     required: false
     type: str
+  allow_http:
+    description:
+      - Allow non HTTPS connexion
+    required: false
+    default: false
+    type: bool    
   action:
     description:
       - Action to take against pipeline API.
@@ -555,7 +561,7 @@ def get_token(module, endpoint, username, password):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" }'
 
-    url = "https://%s/api/system/sessions" % (endpoint)
+    url = endpoint + "/api/system/sessions"
 
     payload = {
         'username': username,
@@ -587,6 +593,7 @@ def main():
             endpoint=dict(type='str'),
             graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
+            allow_http=dict(type='bool', required=False, default=False),
             action=dict(type='str', required=False, default='list',
                         choices=['create', 'create_connection', 'parse_rule', 'create_rule', 'update', 'update_connection',
                                  'update_rule', 'delete', 'delete_rule', 'list', 'list_rules', 'query_rules', 'query_pipelines']),
@@ -609,10 +616,16 @@ def main():
     pipeline_name = module.params['pipeline_name']
     rule_id = module.params['rule_id']
     rule_name = module.params['rule_name']
+    allow_http = module.params['allow_http']
 
-    pipeline_url = "https://%s/api/system/pipelines/pipeline" % (endpoint)
-    rule_url = "https://%s/api/system/pipelines/rule" % (endpoint)
-    connection_url = "https://%s/api/system/pipelines/connections" % (endpoint)
+    if allow_http == True:
+      endpoint = "http://" + endpoint
+    else:
+      endpoint = "https://" + endpoint
+
+    pipeline_url = endpoint + "/api/system/pipelines/pipeline"
+    rule_url = endpoint + "/api/system/pipelines/rule"
+    connection_url = endpoint + "/api/system/pipelines/connections"
 
     api_token = get_token(module, endpoint, graylog_user, graylog_password)
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \
