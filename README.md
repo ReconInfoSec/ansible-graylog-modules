@@ -319,4 +319,31 @@ The following modules are available with the corresponding actions:
     system_password_set: "true"
     system_username: "ldapbind@mydomain.com"
     system_password: "bindPassw0rd"
+
+#### LDAP group mapping
+- name: Get all LDAP groups
+  graylog_ldap_groups:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    action: "list"
+
+- name: Get the LDAP group to Graylog role mapping
+  graylog_ldap_groups:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    action: "list_mapping"
+
+- name: Update the LDAP group to Graylog role mapping
+  graylog_ldap_groups:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"   
+    action: "update"
+    group: "{{ item.group }}"
+    role: "{{ item.role }}"
+  with_items:
+    - { group : "ldap-group-admins", role : "Admin" }
+    - { group : "ldap-group-read", role : "Reader" }
 ```

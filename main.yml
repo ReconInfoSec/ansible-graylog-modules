@@ -315,3 +315,78 @@
         graylog_user: "{{ graylog_user }}"
         graylog_password: "{{ graylog_password }}"
         index_set_id: "{{ index_set.json.id }}"
+
+    - name: Setup Active Directory authentication without SSL and set "Reader" as default role
+      graylog_ldap:
+        endpoint: "graylog.mydomain.com"
+        graylog_user: "username"
+        graylog_password: "password"
+        enabled: "true"
+        active_directory: "true"
+        ldap_uri: "ldap://domaincontroller.mydomain.com:389"
+        system_password_set: "true"
+        system_username: "ldapbind@mydomain.com"
+        system_password: "bindPassw0rd"
+        search_base: "cn=users,dc=mydomain,dc=com"
+        search_pattern: "(&(objectClass=user)(sAMAccountName={0}))"    
+        display_name_attribute: "displayName"
+        group_search_base: "cn=groups,dc=mydomain,dc=com"
+        group_search_pattern: "(&(objectClass=group)(cn=graylog*))"
+        group_id_attribute: "cn"
+
+    - name: Remove current LDAP authentication configuration
+      graylog_ldap:
+        endpoint: "graylog.mydomain.com"
+        graylog_user: "username"
+        graylog_password: "password"
+        action: "delete"
+
+    - name: Get current LDAP authentication configuration
+      graylog_ldap:
+        endpoint: "graylog.mydomain.com"
+        graylog_user: "username"
+        graylog_password: "password"   
+        action: "get"
+      register: currentConfiguration
+
+    - name: Print current LDAP authentication configuration
+      debug:
+        msg: "{{ currentConfiguration }}"
+
+    - name: Test LDAP bind
+      graylog_ldap:
+        endpoint: "graylog.mydomain.com"
+        graylog_user: "username"
+        graylog_password: "password"
+        action: "test"
+        active_directory: "true"
+        ldap_uri: "ldap://domaincontroller.mydomain.com:389"
+        system_password_set: "true"
+        system_username: "ldapbind@mydomain.com"
+        system_password: "bindPassw0rd"
+
+    - name: Get all LDAP groups
+      graylog_ldap_groups:
+        endpoint: "graylog.mydomain.com"
+        graylog_user: "username"
+        graylog_password: "password"
+        action: "list"
+
+    - name: Get the LDAP group to Graylog role mapping
+      graylog_ldap_groups:
+        endpoint: "graylog.mydomain.com"
+        graylog_user: "username"
+        graylog_password: "password"
+        action: "list_mapping"
+
+    - name: Update the LDAP group to Graylog role mapping
+      graylog_ldap_groups:
+        endpoint: "graylog.mydomain.com"
+        graylog_user: "username"
+        graylog_password: "password"   
+        action: "update"
+        group: "{{ item.group }}"
+        role: "{{ item.role }}"
+      with_items:
+        - { group : "ldap-group-admins", role : "Admin" }
+        - { group : "ldap-group-read", role : "Reader" }
