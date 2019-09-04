@@ -343,7 +343,7 @@ The following modules are available with the corresponding actions:
     action: "update"
     group: "{{ item.group }}"
     role: "{{ item.role }}"
-      with_items:
-        - { group : "ldap-group-admins", role : "Admin" }
-        - { group : "ldap-group-read", role : "Reader" }
+  with_items:
+    - { group : "ldap-group-admins", role : "Admin" }
+    - { group : "ldap-group-read", role : "Reader" }
 ```
