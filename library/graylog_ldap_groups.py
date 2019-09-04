@@ -43,11 +43,19 @@ options:
     default: list
     choices: [ list, list_mapping, update ]
     type: str
-# TODO: check & finish
+  group:
+    description:
+      - LDAP group whose role is to update
+    required: false
+    type: str
+  role:
+    description:
+      - Graylog role to assign to the LDAP group
+    require: false
+    type: str
 '''
 
 EXAMPLES = '''
-# TODO: check & finish
 # Get all LDAP groups
 - graylog_ldap_groups:
     endpoint: "graylog.mydomain.com"
@@ -68,7 +76,20 @@ EXAMPLES = '''
     graylog_user: "username"
     graylog_password: "password"   
     action: "update"
+    group: "{{ item.group }}"
+    role: "{{ item.role }}"
+      with_items:
+        - { group : "ldap-group-admins", role : "Admin" }
+        - { group : "ldap-group-read", role : "Reader" }
 
+# Remove Graylog role mapping
+- graylog_ldap_groups:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"   
+    action: "update"
+    group: "ldap-group-foobar"
+    role: "None"
 '''
 
 # import module snippets
@@ -77,7 +98,62 @@ import base64
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url, to_text
 
+def list(module, base_url, headers):
 
+    url = base_url + "/groups"
+
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
+
+    try:
+        content = to_text(response.read(), errors='surrogate_or_strict')
+    except AttributeError:
+        content = info.pop('body', '')
+
+    return info['status'], info['msg'], content, url
+
+def list_mapping(module, base_url, headers):
+
+    url = base_url + "/settings/groups"
+
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
+
+    try:
+        content = to_text(response.read(), errors='surrogate_or_strict')
+    except AttributeError:
+        content = info.pop('body', '')
+
+    return info['status'], info['msg'], content, url
+
+
+def update(module, base_url, headers):
+
+    url = base_url + "/settings/groups"
+    
+    # Get current mapping
+    (currentMapping) = list_mapping(module, base_url, headers)    
+    payload = json.loads(currentMapping[2])
+    
+    # Update value  
+    group = module.params['group']
+    payload[group] = module.params['role']
+    
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
+
+    if info['status'] != 204:
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
+
+    try:
+        content = to_text(response.read(), errors='surrogate_or_strict')
+    except AttributeError:
+        content = info.pop('body', '')
+
+    return info['status'], info['msg'], content, url
 
 def get_token(module, endpoint, username, password, allow_http):
 
@@ -107,7 +183,6 @@ def get_token(module, endpoint, username, password, allow_http):
 
     return session_token
 
-
 def main():
     module = AnsibleModule(
         argument_spec=dict(
@@ -116,7 +191,9 @@ def main():
             graylog_password=dict(type='str', no_log=True),
             action=dict(type='str', required=False, default='list', 
                         choices=[ 'list', 'list_mapping', 'update' ]),
-            allow_http=dict(type='bool', required=False, default=False)
+            allow_http=dict(type='bool', required=False, default=False),
+            group=dict(type='str'),
+            role=dict(type='str')
         )
     )
 
