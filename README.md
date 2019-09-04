@@ -319,8 +319,10 @@ The following modules are available with the corresponding actions:
     system_password_set: "true"
     system_username: "ldapbind@mydomain.com"
     system_password: "bindPassw0rd"
+```
 
 #### LDAP group mapping
+```
 - name: Get all LDAP groups
   graylog_ldap_groups:
     endpoint: "graylog.mydomain.com"
