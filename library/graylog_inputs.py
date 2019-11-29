@@ -72,6 +72,19 @@ options:
       - Node name if input is not global
     required: false
     type: str
+  bind_address:
+    description:
+      - Address to listen on
+      - Required with actions create and update
+    required: false
+    default: "0.0.0.0"
+    type: str
+  port:
+    description:
+      - Port to listen on
+      - Required with actions create and update
+    required: false  
+    type: int
   allow_override_date:
     description:
       - Allow to override with current date if date could not be parsed
@@ -80,13 +93,6 @@ options:
     required: false
     default: false
     type: bool
-  bind_address:
-    description:
-      - Address to listen on
-      - Required with actions create and update
-    required: false
-    default: "0.0.0.0"
-    type: str
   expand_structured_data:
     description:
       - Expand structured data elements by prefixing attributes with their SD-ID
@@ -229,12 +235,14 @@ def main():
             title=dict(type='str', required=False ),
             global_input=dict(type='bool', required=False, default=True),
             node=dict(type='str', required=False),
-            allow_override_date=dict(type='bool', required=False, default=False),
             bind_address=dict(type='str', required=False, default='0.0.0.0'),
+            port=dict(type='int', required=False),
+            allow_override_date=dict(type='bool', required=False, default=False),
             expand_structured_data=dict(type='bool', required=False, default=False),
             force_rdns=dict(type='bool', required=False, default=False),
             number_worker_threads=dict(type='int', required=False, default=2),
             override_source=dict(type='str', required=False),
+
         )
     )
 
