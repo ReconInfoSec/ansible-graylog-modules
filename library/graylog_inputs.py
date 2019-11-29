@@ -95,14 +95,21 @@ options:
     required: false
     default: false
     type: bool
-  force_rdns
+  force_rdns:
     description:
       - Force rDNS resolution of hostname. Use if hostname cannot be parsed. (Be careful if you are sending DNS logs into this input because it can cause a feedback loop.) 
       - Required with actions create and update
       - Required for SyslogUDPInput and SyslogTCPInput
     required: false
     default: false
-    type: bool        
+    type: bool
+  number_worker_threads:
+    description:
+      - Number of worker threads processing network connections for this input.
+      - Required with actions create and update
+    required: false
+    default: 2
+    type: int  
 '''
 
 EXAMPLES = '''
@@ -219,6 +226,7 @@ def main():
             bind_address=dict(type='str', required=False, default='0.0.0.0'),
             expand_structured_data=dict(type='bool', required=False, default=False),
             force_rdns=dict(type='bool', required=False, default=False),
+            number_worker_threads=dict(type='int', required=False, default=2),
         )
     )
 
