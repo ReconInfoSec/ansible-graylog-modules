@@ -59,9 +59,14 @@ options:
   title:
     description:
       - Entitled of the input
-      - Mandatory with actions create, update and delete
+      - Required with actions create, update and delete
     required: false
     type: str
+  global_input:
+    description:
+      - Input is present on all Graylog nodes
+    required: false
+    type: bool
 '''
 
 EXAMPLES = '''
@@ -172,6 +177,7 @@ def main():
             input_type=dict(type='str', required=False, default='list', 
                         choices=[ 'SyslogUDPInput', 'SyslogTCPInput', 'GELFUDPInput', 'GELFTCPInput', 'GELFHttpInput' ],
             title=dict(type='str', required=False ),
+            global_input=dict(type='bool', required=False, default=True),
         )
     )
 
