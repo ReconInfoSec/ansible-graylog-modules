@@ -153,6 +153,13 @@ options:
     required: false
     default: false
     type: bool
+  tls_cert_file:
+     description:
+      - Path to the TLS certificate file
+      - Required with actions create and update
+      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
+    required: false
+    type: str
 '''
 
 EXAMPLES = '''
@@ -276,6 +283,7 @@ def main():
             store_full_message=dict(type='bool', required=False, default=False),
             tcp_keepalive=dict(type='bool', required=False, default=False),
             tls_enable=dict(type='bool', required=False, default=False),
+            tls_cert_file=dict(type='str', required=False),
         )
     )
 
