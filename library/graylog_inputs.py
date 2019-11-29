@@ -129,6 +129,22 @@ options:
     required: false
     default: 1048576
     type: int
+  store_full_message:
+    description:
+      - Store the full original syslog message as full_message
+      - Required with actions create and update
+      - Required for SyslogUDPInput and SyslogTCPInput
+    required: false
+    default: false
+    type: bool
+  tcp_keepalive:
+    description:
+      - Enable TCP keepalive packets
+      - Required with actions create and update
+      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
+    required: false
+    default: false
+    type: bool
 '''
 
 EXAMPLES = '''
@@ -249,6 +265,8 @@ def main():
             number_worker_threads=dict(type='int', required=False, default=2),
             override_source=dict(type='str', required=False),
             recv_buffer_size=dict(type='int', required=False, default=1048576),
+            store_full_message=dict(type='bool', required=False, default=False),
+            tcp_keepalive=dict(type='bool', required=False, default=False),
 
         )
     )
