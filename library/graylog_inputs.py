@@ -182,7 +182,13 @@ options:
     required: false
     default: disabled
     choices: [ 'disabled', 'optional', 'required' ]
-    
+  tls_client_auth_cert_file:
+    description:
+      - TLS Client Auth Trusted Certs (File or Directory)
+      - Required with actions create and update
+      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
+    required: false
+    type: str
 '''
 
 EXAMPLES = '''
@@ -311,6 +317,7 @@ def main():
             tls_key_password=dict(type='str', required=False),
             tls_client_auth=dict(type='str', required=False, default='disabled', 
                         choices=[ 'disabled', 'optional', 'required' ],
+            tls_client_auth_cert_file=dict(type='str', required=False),
         )
     )
 
