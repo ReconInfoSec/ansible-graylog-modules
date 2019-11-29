@@ -174,6 +174,15 @@ options:
       - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
     required: false
     type: str
+  tls_client_auth:
+    description:
+      - Whether clients need to authenticate themselves in a TLS connection
+      - Required with actions create and update
+      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput      
+    required: false
+    default: disabled
+    choices: [ 'disabled', 'optional', 'required' ]
+    
 '''
 
 EXAMPLES = '''
@@ -300,6 +309,8 @@ def main():
             tls_cert_file=dict(type='str', required=False),
             tls_key_file=dict(type='str', required=False),
             tls_key_password=dict(type='str', required=False),
+            tls_client_auth=dict(type='str', required=False, default='disabled', 
+                        choices=[ 'disabled', 'optional', 'required' ],
         )
     )
 
