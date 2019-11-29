@@ -67,6 +67,11 @@ options:
       - Input is present on all Graylog nodes
     required: false
     type: bool
+  node:
+    description:
+      - Node name if input is not global
+    required: false
+    type: str
 '''
 
 EXAMPLES = '''
@@ -178,6 +183,7 @@ def main():
                         choices=[ 'SyslogUDPInput', 'SyslogTCPInput', 'GELFUDPInput', 'GELFTCPInput', 'GELFHttpInput' ],
             title=dict(type='str', required=False ),
             global_input=dict(type='bool', required=False, default=True),
+            node=dict(type='str', required=False),
         )
     )
 
