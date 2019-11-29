@@ -145,6 +145,14 @@ options:
     required: false
     default: false
     type: bool
+  tls_enable:
+    description:
+      - Accept TLS connections
+      - Required with actions create and update
+      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
+    required: false
+    default: false
+    type: bool
 '''
 
 EXAMPLES = '''
@@ -267,7 +275,7 @@ def main():
             recv_buffer_size=dict(type='int', required=False, default=1048576),
             store_full_message=dict(type='bool', required=False, default=False),
             tcp_keepalive=dict(type='bool', required=False, default=False),
-
+            tls_enable=dict(type='bool', required=False, default=False),
         )
     )
 
