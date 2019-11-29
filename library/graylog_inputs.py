@@ -87,6 +87,14 @@ options:
     required: false
     default: "0.0.0.0"
     type: str
+  expand_structured_data:
+    description:
+      -Expand structured data
+      - Required with actions create and update
+      - Required for SyslogUDPInput and SyslogTCPInput
+    required: false
+    default: false
+    type: bool  
 '''
 
 EXAMPLES = '''
@@ -201,6 +209,7 @@ def main():
             node=dict(type='str', required=False),
             allow_override_date=dict(type='bool', required=False, default=False),
             bind_address=dict(type='str', required=False, default='0.0.0.0'),
+            expand_structured_data=dict(type='bool', required=False, default=False),
         )
     )
 
