@@ -74,7 +74,7 @@ options:
     type: str
   allow_override_date:
     description:
-      - Allow override date
+      - Allow to override with current date if date could not be parsed
       - Required with actions create and update
       - Required for SyslogUDPInput and SyslogTCPInput
     required: false
@@ -82,19 +82,27 @@ options:
     type: bool
   bind_address:
     description:
-      - Node bind address
+      - Address to listen on
       - Required with actions create and update
     required: false
     default: "0.0.0.0"
     type: str
   expand_structured_data:
     description:
-      -Expand structured data
+      - Expand structured data elements by prefixing attributes with their SD-ID
       - Required with actions create and update
       - Required for SyslogUDPInput and SyslogTCPInput
     required: false
     default: false
-    type: bool  
+    type: bool
+  force_rdns
+    description:
+      - Force rDNS resolution of hostname. Use if hostname cannot be parsed. (Be careful if you are sending DNS logs into this input because it can cause a feedback loop.) 
+      - Required with actions create and update
+      - Required for SyslogUDPInput and SyslogTCPInput
+    required: false
+    default: false
+    type: bool        
 '''
 
 EXAMPLES = '''
@@ -210,6 +218,7 @@ def main():
             allow_override_date=dict(type='bool', required=False, default=False),
             bind_address=dict(type='str', required=False, default='0.0.0.0'),
             expand_structured_data=dict(type='bool', required=False, default=False),
+            force_rdns=dict(type='bool', required=False, default=False),
         )
     )
 
