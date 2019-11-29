@@ -189,6 +189,14 @@ options:
       - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
     required: false
     type: str
+  use_null_delimiter:
+    description:
+      - Use null byte as frame delimiter ? Otherwise newline delimiter is used.
+      - Required with actions create and update
+      - Required for SyslogTCPInput and GELFTCPInput
+    required: false
+    default: false
+    type: bool
 '''
 
 EXAMPLES = '''
@@ -318,6 +326,7 @@ def main():
             tls_client_auth=dict(type='str', required=False, default='disabled', 
                         choices=[ 'disabled', 'optional', 'required' ],
             tls_client_auth_cert_file=dict(type='str', required=False),
+            use_null_delimiter=dict(type='bool', required=False, default=False),
         )
     )
 
