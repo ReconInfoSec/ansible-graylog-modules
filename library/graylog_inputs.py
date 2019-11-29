@@ -72,6 +72,14 @@ options:
       - Node name if input is not global
     required: false
     type: str
+  allow_override_date:
+    description:
+      - Allow override date
+      - Required with actions create and update
+      - Required for SyslogUDPInput and SyslogTCPInput
+    required: false
+    default: false
+    type: bool
 '''
 
 EXAMPLES = '''
@@ -184,6 +192,7 @@ def main():
             title=dict(type='str', required=False ),
             global_input=dict(type='bool', required=False, default=True),
             node=dict(type='str', required=False),
+            allow_override_date=dict(type='bool', required=False, default=False),
         )
     )
 
