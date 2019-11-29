@@ -109,7 +109,14 @@ options:
       - Required with actions create and update
     required: false
     default: 2
-    type: int  
+    type: int
+  override_source:
+    description:
+      - The source is a hostname derived from the received packet by default. Set this if you want to override it with a custom string.
+      - Required with actions create and update
+    required: false
+    type: str
+
 '''
 
 EXAMPLES = '''
@@ -227,6 +234,7 @@ def main():
             expand_structured_data=dict(type='bool', required=False, default=False),
             force_rdns=dict(type='bool', required=False, default=False),
             number_worker_threads=dict(type='int', required=False, default=2),
+            override_source=dict(type='str', required=False),
         )
     )
 
