@@ -80,6 +80,13 @@ options:
     required: false
     default: false
     type: bool
+  bind_address:
+    description:
+      - Node bind address
+      - Required with actions create and update
+    required: false
+    default: "0.0.0.0"
+    type: str
 '''
 
 EXAMPLES = '''
@@ -193,6 +200,7 @@ def main():
             global_input=dict(type='bool', required=False, default=True),
             node=dict(type='str', required=False),
             allow_override_date=dict(type='bool', required=False, default=False),
+            bind_address=dict(type='str', required=False, default='0.0.0.0'),
         )
     )
 
