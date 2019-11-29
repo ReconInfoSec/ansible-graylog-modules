@@ -56,6 +56,12 @@ options:
     default: SyslogUDPInput
     choices: [ 'SyslogUDPInput', 'SyslogTCPInput', 'GELFUDPInput', 'GELFTCPInput', 'GELFHttpInput' ]
     type: str
+  title:
+    description:
+      - Entitled of the input
+      - Mandatory with actions create, update and delete
+    required: false
+    type: str
 '''
 
 EXAMPLES = '''
@@ -164,7 +170,8 @@ def main():
             action=dict(type='str', required=False, default='list', 
                         choices=[ 'list' ,'create', 'update', 'delete' ]),
             input_type=dict(type='str', required=False, default='list', 
-                        choices=[ 'SyslogUDPInput', 'SyslogTCPInput', 'GELFUDPInput', 'GELFTCPInput', 'GELFHttpInput' ]
+                        choices=[ 'SyslogUDPInput', 'SyslogTCPInput', 'GELFUDPInput', 'GELFTCPInput', 'GELFHttpInput' ],
+            title=dict(type='str', required=False ),
         )
     )
 
