@@ -154,19 +154,26 @@ options:
     default: false
     type: bool
   tls_cert_file:
-     description:
+    description:
       - Path to the TLS certificate file
       - Required with actions create and update
       - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
     required: false
     type: str
   tls_key_file:
-     description:
+    description:
       - Path to the TLS private key file
       - Required with actions create and update
       - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
     required: false
-    type: str  
+    type: str
+  tls_key_password:
+    description:
+      - The password for the encrypted key file.
+      - Required with actions create and update
+      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
+    required: false
+    type: str
 '''
 
 EXAMPLES = '''
@@ -292,6 +299,7 @@ def main():
             tls_enable=dict(type='bool', required=False, default=False),
             tls_cert_file=dict(type='str', required=False),
             tls_key_file=dict(type='str', required=False),
+            tls_key_password=dict(type='str', required=False),
         )
     )
 
