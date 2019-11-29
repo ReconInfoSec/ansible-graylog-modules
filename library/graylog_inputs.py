@@ -122,7 +122,13 @@ options:
       - Required with actions create and update
     required: false
     type: str
-
+  recv_buffer_size:
+    description:
+      - The size in bytes of the recvBufferSize for network connections to this input.
+      - Required with actions create and update
+    required: false
+    default: 1048576
+    type: int
 '''
 
 EXAMPLES = '''
@@ -242,6 +248,7 @@ def main():
             force_rdns=dict(type='bool', required=False, default=False),
             number_worker_threads=dict(type='int', required=False, default=2),
             override_source=dict(type='str', required=False),
+            recv_buffer_size=dict(type='int', required=False, default=1048576),
 
         )
     )
