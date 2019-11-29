@@ -160,6 +160,13 @@ options:
       - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
     required: false
     type: str
+  tls_key_file:
+     description:
+      - Path to the TLS private key file
+      - Required with actions create and update
+      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
+    required: false
+    type: str  
 '''
 
 EXAMPLES = '''
@@ -284,6 +291,7 @@ def main():
             tcp_keepalive=dict(type='bool', required=False, default=False),
             tls_enable=dict(type='bool', required=False, default=False),
             tls_cert_file=dict(type='str', required=False),
+            tls_key_file=dict(type='str', required=False),
         )
     )
 
