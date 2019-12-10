@@ -182,13 +182,44 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url, to_text
 
 
-def update(module, base_url, headers):
+# def update(module, base_url, headers):
 
-    url = base_url
+#     url = base_url
        
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
+#     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
 
-    if info['status'] != 204:
+#     if info['status'] != 204:
+#         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
+
+#     try:
+#         content = to_text(response.read(), errors='surrogate_or_strict')
+#     except AttributeError:
+#         content = info.pop('body', '')
+
+#     return info['status'], info['msg'], content, url
+
+
+def create(module, base_url, headers):
+
+    configuration = {}
+    for key in [ 'bind_address', 'port', 'allow_override_date', 'expand_structured_data', 'force_rdns', \
+                 'number_worker_threads', 'override_source', 'recv_buffer_size', 'store_full_message', \
+                 'tcp_keepalive', 'tls_enable', 'tls_cert_file', 'tls_key_file', 'tls_key_password', \
+                 'tls_client_auth', 'tls_client_auth_cert_file', 'use_null_delimiter' ]:
+        if module.params[key] is not None:
+            configuration[key] = module.params[key]
+
+    payload = {}
+
+    payload['type'] = module.params['input_type']
+    payload['title'] = module.params['title']
+    payload['global'] = module.params['global_input']
+    payload['node'] = module.params['node']
+    payload['configuration'] = configuration
+
+    response, info = fetch_url(module=module, url=base_url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+
+    if info['status'] != 201:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
@@ -196,7 +227,8 @@ def update(module, base_url, headers):
     except AttributeError:
         content = info.pop('body', '')
 
-    return info['status'], info['msg'], content, url
+    return info['status'], info['msg'], content, base_url
+
 
 def get_token(module, endpoint, username, password, allow_http):
 
@@ -237,12 +269,12 @@ def main():
             action=dict(type='str', required=False, default='create', 
                         choices=[ 'create', 'update' ]),
             input_type=dict(type='str', required=False, default='UDP', 
-                        choices=[ 'UDP', 'TCP' ],
-            title=dict(type='str', required=True ),
+                        choices=[ 'UDP', 'TCP' ]),
+            title=dict(type='str', required=True),
             global_input=dict(type='bool', required=False, default=True),
             node=dict(type='str', required=False),
             bind_address=dict(type='str', required=False, default='0.0.0.0'),
-            port=dict(type='int', required=True, default=514),
+            port=dict(type='int', required=False, default=514),
             allow_override_date=dict(type='bool', required=False, default=False),
             expand_structured_data=dict(type='bool', required=False, default=False),
             force_rdns=dict(type='bool', required=False, default=False),
@@ -256,9 +288,9 @@ def main():
             tls_key_file=dict(type='str', required=False),
             tls_key_password=dict(type='str', required=False),
             tls_client_auth=dict(type='str', required=False, default='disabled', 
-                        choices=[ 'disabled', 'optional', 'required' ],
+                        choices=[ 'disabled', 'optional', 'required' ]),
             tls_client_auth_cert_file=dict(type='str', required=False),
-            use_null_delimiter=dict(type='bool', required=False, default=False),
+            use_null_delimiter=dict(type='bool', required=False, default=False)
         )
     )
 
@@ -267,7 +299,7 @@ def main():
     graylog_password = module.params['graylog_password']
     action = module.params['action']
     allow_http = module.params['allow_http']
-    input_type = module.params['input_type']
+
 
     if allow_http == True:
       endpoint = "http://" + endpoint
@@ -275,10 +307,10 @@ def main():
       endpoint = "https://" + endpoint
 
     # Build full name of input type
-    if input_type == "UDP":
-        input_type = "org.graylog2.inputs.syslog.udp.SyslogUDPInput"
+    if module.params['input_type'] == "UDP":
+        module.params['input_type'] = "org.graylog2.inputs.syslog.udp.SyslogUDPInput"
     else:
-        input_type = "org.graylog2.inputs.syslog.tcp.SyslogTCPInput"
+        module.params['input_type'] = "org.graylog2.inputs.syslog.tcp.SyslogTCPInput"
 
     base_url = endpoint + "/api/system/inputs"
 
@@ -286,14 +318,10 @@ def main():
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \
                 "Authorization": "Basic ' + api_token.decode() + '" }'
 
-    if action == "list":
-        status, message, content, url = list(module, base_url, headers)                
-    elif action == "create":
-        status, message, content, url = create(module, base_url, headers)
+    if action == "create":
+        status, message, content, url = create(module, base_url, headers)                
     elif action == "update":
         status, message, content, url = update(module, base_url, headers)
-    elif action == "delete":
-        status, message, content, url = delete(module, base_url, headers)
        
     uresp = {}
     content = to_text(content, encoding='UTF-8')

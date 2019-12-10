@@ -47,14 +47,7 @@ options:
       - Action to take against LDAP API.
     required: true
     default: list
-    choices: [ create, update, delete, list ]
-    type: str
-  input_type:
-    description:
-      - Input type (not all are implemented at this time)
-    required: false
-    default: SyslogUDPInput
-    choices: [ 'SyslogUDPInput', 'SyslogTCPInput', 'GELFUDPInput', 'GELFTCPInput', 'GELFHttpInput' ]
+    choices: [ list, delete]
     type: str
   title:
     description:
@@ -62,141 +55,6 @@ options:
       - Required with actions create, update and delete
     required: false
     type: str
-  global_input:
-    description:
-      - Input is present on all Graylog nodes
-    required: false
-    type: bool
-  node:
-    description:
-      - Node name if input is not global
-    required: false
-    type: str
-  bind_address:
-    description:
-      - Address to listen on
-      - Required with actions create and update
-    required: false
-    default: "0.0.0.0"
-    type: str
-  port:
-    description:
-      - Port to listen on
-      - Required with actions create and update
-    required: false  
-    type: int
-  allow_override_date:
-    description:
-      - Allow to override with current date if date could not be parsed
-      - Required with actions create and update
-      - Required for SyslogUDPInput and SyslogTCPInput
-    required: false
-    default: false
-    type: bool
-  expand_structured_data:
-    description:
-      - Expand structured data elements by prefixing attributes with their SD-ID
-      - Required with actions create and update
-      - Required for SyslogUDPInput and SyslogTCPInput
-    required: false
-    default: false
-    type: bool
-  force_rdns:
-    description:
-      - Force rDNS resolution of hostname. Use if hostname cannot be parsed. (Be careful if you are sending DNS logs into this input because it can cause a feedback loop.) 
-      - Required with actions create and update
-      - Required for SyslogUDPInput and SyslogTCPInput
-    required: false
-    default: false
-    type: bool
-  number_worker_threads:
-    description:
-      - Number of worker threads processing network connections for this input.
-      - Required with actions create and update
-    required: false
-    default: 2
-    type: int
-  override_source:
-    description:
-      - The source is a hostname derived from the received packet by default. Set this if you want to override it with a custom string.
-      - Required with actions create and update
-    required: false
-    type: str
-  recv_buffer_size:
-    description:
-      - The size in bytes of the recvBufferSize for network connections to this input.
-      - Required with actions create and update
-    required: false
-    default: 1048576
-    type: int
-  store_full_message:
-    description:
-      - Store the full original syslog message as full_message
-      - Required with actions create and update
-      - Required for SyslogUDPInput and SyslogTCPInput
-    required: false
-    default: false
-    type: bool
-  tcp_keepalive:
-    description:
-      - Enable TCP keepalive packets
-      - Required with actions create and update
-      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
-    required: false
-    default: false
-    type: bool
-  tls_enable:
-    description:
-      - Accept TLS connections
-      - Required with actions create and update
-      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
-    required: false
-    default: false
-    type: bool
-  tls_cert_file:
-    description:
-      - Path to the TLS certificate file
-      - Required with actions create and update
-      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
-    required: false
-    type: str
-  tls_key_file:
-    description:
-      - Path to the TLS private key file
-      - Required with actions create and update
-      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
-    required: false
-    type: str
-  tls_key_password:
-    description:
-      - The password for the encrypted key file.
-      - Required with actions create and update
-      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
-    required: false
-    type: str
-  tls_client_auth:
-    description:
-      - Whether clients need to authenticate themselves in a TLS connection
-      - Required with actions create and update
-      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput      
-    required: false
-    default: disabled
-    choices: [ 'disabled', 'optional', 'required' ]
-  tls_client_auth_cert_file:
-    description:
-      - TLS Client Auth Trusted Certs (File or Directory)
-      - Required with actions create and update
-      - Required for SyslogTCPInput, GELFTCPInput and GELFHttpInput
-    required: false
-    type: str
-  use_null_delimiter:
-    description:
-      - Use null byte as frame delimiter ? Otherwise newline delimiter is used.
-      - Required with actions create and update
-      - Required for SyslogTCPInput and GELFTCPInput
-    required: false
-    default: false
-    type: bool
 '''
 
 EXAMPLES = '''
@@ -216,47 +74,6 @@ def list(module, base_url, headers):
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
-
-    try:
-        content = to_text(response.read(), errors='surrogate_or_strict')
-    except AttributeError:
-        content = info.pop('body', '')
-
-    return info['status'], info['msg'], content, url
-
-def list_mapping(module, base_url, headers):
-
-    url = base_url + "/settings/groups"
-
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
-
-    if info['status'] != 200:
-        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
-
-    try:
-        content = to_text(response.read(), errors='surrogate_or_strict')
-    except AttributeError:
-        content = info.pop('body', '')
-
-    return info['status'], info['msg'], content, url
-
-
-def update(module, base_url, headers):
-
-    url = base_url + "/settings/groups"
-    
-    # Get current mapping
-    (currentMapping) = list_mapping(module, base_url, headers)    
-    payload = json.loads(currentMapping[2])
-    
-    # Update value  
-    group = module.params['group']
-    payload[group] = module.params['role']
-    
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
-
-    if info['status'] != 204:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
@@ -303,30 +120,8 @@ def main():
             validate_certs=dict(type='bool', required=False, default=True),
             allow_http=dict(type='bool', required=False, default=False),
             action=dict(type='str', required=False, default='list', 
-                        choices=[ 'list' ,'create', 'update', 'delete' ]),
-            input_type=dict(type='str', required=False, default='list', 
-                        choices=[ 'SyslogUDPInput', 'SyslogTCPInput', 'GELFUDPInput', 'GELFTCPInput', 'GELFHttpInput' ],
-            title=dict(type='str', required=False ),
-            global_input=dict(type='bool', required=False, default=True),
-            node=dict(type='str', required=False),
-            bind_address=dict(type='str', required=False, default='0.0.0.0'),
-            port=dict(type='int', required=False),
-            allow_override_date=dict(type='bool', required=False, default=False),
-            expand_structured_data=dict(type='bool', required=False, default=False),
-            force_rdns=dict(type='bool', required=False, default=False),
-            number_worker_threads=dict(type='int', required=False, default=2),
-            override_source=dict(type='str', required=False),
-            recv_buffer_size=dict(type='int', required=False, default=1048576),
-            store_full_message=dict(type='bool', required=False, default=False),
-            tcp_keepalive=dict(type='bool', required=False, default=False),
-            tls_enable=dict(type='bool', required=False, default=False),
-            tls_cert_file=dict(type='str', required=False),
-            tls_key_file=dict(type='str', required=False),
-            tls_key_password=dict(type='str', required=False),
-            tls_client_auth=dict(type='str', required=False, default='disabled', 
-                        choices=[ 'disabled', 'optional', 'required' ],
-            tls_client_auth_cert_file=dict(type='str', required=False),
-            use_null_delimiter=dict(type='bool', required=False, default=False),
+                        choices=[ 'list' , 'delete' ]),
+            title=dict(type='str', required=False )
         )
     )
 
@@ -335,24 +130,11 @@ def main():
     graylog_password = module.params['graylog_password']
     action = module.params['action']
     allow_http = module.params['allow_http']
-    input_type = module.params['input_type']
 
     if allow_http == True:
       endpoint = "http://" + endpoint
     else:
       endpoint = "https://" + endpoint
-
-    # Build full name of input type
-    if input_type == "SyslogUDPInput":
-        input_type = "org.graylog2.inputs.syslog.udp.SyslogUDPInput"
-    elif input_type == "SyslogTCPInput":
-        input_type = "org.graylog2.inputs.syslog.tcp.SyslogTCPInput"
-    elif input_type == "GELFTCPInput":
-        input_type = "org.graylog2.inputs.gelf.tcp.GELFTCPInput"
-    elif input_type == "GELFUDPInput":
-        input_type = "org.graylog2.inputs.gelf.udp.GELFUDPInput"
-    elif input_type == "GELFHttpInput":
-        input_type = "org.graylog2.inputs.gelf.http.GELFHttpInput"
 
     base_url = endpoint + "/api/system/inputs"
 
@@ -362,10 +144,6 @@ def main():
 
     if action == "list":
         status, message, content, url = list(module, base_url, headers)                
-    elif action == "create":
-        status, message, content, url = create(module, base_url, headers)
-    elif action == "update":
-        status, message, content, url = update(module, base_url, headers)
     elif action == "delete":
         status, message, content, url = delete(module, base_url, headers)
        
