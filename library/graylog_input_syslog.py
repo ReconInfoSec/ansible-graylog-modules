@@ -177,7 +177,44 @@ options:
 '''
 
 EXAMPLES = '''
+  - name: Create Rsyslog TCP input
+    graylog_input_syslog:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "create"
+      input_type: "TCP"
+      title: "Rsyslog TCP"
+      global_input: "true"
+      allow_override_date: "true"
+      bind_address: "0.0.0.0"
+      expand_structured_data: "false"
+      force_rdns: "false"
+      number_worker_threads: "2"
+      port: "514"
+      recv_buffer_size: "1048576"
+      store_full_message: "true"
 
+
+  - name: Update existing input
+    graylog_input_syslog:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "update"
+      input_type: "TCP"
+      title: "Rsyslog TCP"
+      global_input: "true"
+      allow_override_date: "true"
+      expand_structured_data: "false"
+      force_rdns: "true"
+      port: "1514"
+      store_full_message: "true"
+      input_id: "1df0f1234abcd0000d0adf20"
 '''
 
 # import module snippets
