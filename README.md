@@ -349,3 +349,76 @@ The following modules are available with the corresponding actions:
     - { group : "ldap-group-admins", role : "Admin" }
     - { group : "ldap-group-read", role : "Reader" }
 ```
+
+#### Input managment
+```
+  - name: Display all inputs
+    graylog_inputs:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "list"
+
+  - name: Remove input with ID 1df0f1234abcd0000d0adf20
+    graylog_inputs:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "delete"        
+      input_id: "1df0f1234abcd0000d0adf20"
+
+  - name: Create Rsyslog TCP input
+    graylog_input_syslog:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "create"
+      input_type: "TCP"
+      title: "Rsyslog TCP"
+      global_input: "true"
+      allow_override_date: "true"
+      bind_address: "0.0.0.0"
+      expand_structured_data: "false"
+      force_rdns: "false"
+      number_worker_threads: "2"
+      port: "514"
+      recv_buffer_size: "1048576"
+      store_full_message: "true"
+
+  - name: Create GELF HTTP input
+    graylog_input_gelf:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "create"
+      input_type: "HTTP"
+      title: "Test input GELF HTTP"
+      global_input: "true"
+      bind_address: "0.0.0.0"
+
+  - name: Update existing RSyslog input
+    graylog_input_syslog:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "update"
+      input_type: "TCP"
+      title: "Rsyslog TCP"
+      global_input: "true"
+      allow_override_date: "true"
+      expand_structured_data: "false"
+      force_rdns: "true"
+      port: "1514"
+      store_full_message: "true"
+      input_id: "1df0f1234abcd0000d0adf20"      
+```
