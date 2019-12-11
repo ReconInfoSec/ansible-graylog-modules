@@ -47,18 +47,34 @@ options:
       - Action to take against LDAP API.
     required: true
     default: list
-    choices: [ list, delete]
+    choices: [ list, delete ]
     type: str
-  title:
+  input_id:
     description:
-      - Entitled of the input
-      - Required with actions create, update and delete
+      - ID of input to remove
     required: false
     type: str
 '''
 
 EXAMPLES = '''
+    - name: Display all inputs
+      graylog_inputs:
+        endpoint: "{{ graylog_endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        allow_http: "true"
+        validate_certs: "false"
+        action: "list"
 
+    - name: Remove input with ID 1df0f1234abcd0000d0adf20
+      graylog_inputs:
+        endpoint: "{{ graylog_endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        allow_http: "true"
+        validate_certs: "false"
+        action: "delete"        
+        input_id: "1df0f1234abcd0000d0adf20"
 '''
 
 # import module snippets
@@ -66,6 +82,22 @@ import json
 import base64
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url, to_text
+
+def delete(module, base_url, headers):
+
+    url = base_url + "/" + module.params['input_id']
+
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='DELETE')
+
+    if info['status'] != 204:
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
+
+    try:
+        content = to_text(response.read(), errors='surrogate_or_strict')
+    except AttributeError:
+        content = info.pop('body', '')
+
+    return info['status'], info['msg'], content, url
 
 def list(module, base_url, headers):
 
@@ -121,7 +153,7 @@ def main():
             allow_http=dict(type='bool', required=False, default=False),
             action=dict(type='str', required=False, default='list', 
                         choices=[ 'list' , 'delete' ]),
-            title=dict(type='str', required=False )
+            input_id=dict(type='str', required=False ),
         )
     )
 
