@@ -61,6 +61,11 @@ options:
       - Entitled of the input
     required: true
     type: str
+  input_id:
+    description:
+      - ID of input to update
+    required: false
+    type: str
   global_input:
     description:
       - Should this input start on all nodes
@@ -182,24 +187,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url, to_text
 
 
-# def update(module, base_url, headers):
-
-#     url = base_url
-       
-#     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
-
-#     if info['status'] != 204:
-#         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
-
-#     try:
-#         content = to_text(response.read(), errors='surrogate_or_strict')
-#     except AttributeError:
-#         content = info.pop('body', '')
-
-#     return info['status'], info['msg'], content, url
-
-
-def create(module, base_url, headers):
+def update(module, base_url, headers):
 
     configuration = {}
     for key in [ 'bind_address', 'port', 'allow_override_date', 'expand_structured_data', 'force_rdns', \
@@ -217,7 +205,13 @@ def create(module, base_url, headers):
     payload['node'] = module.params['node']
     payload['configuration'] = configuration
 
-    response, info = fetch_url(module=module, url=base_url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+    if module.params['action'] == "create":
+      httpMethod = "POST"
+    else:
+      httpMethod = "PUT"
+      base_url = base_url + "/" + module.params['input_id']
+
+    response, info = fetch_url(module=module, url=base_url, headers=json.loads(headers), method=httpMethod, data=module.jsonify(payload))
 
     if info['status'] != 201:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
@@ -271,6 +265,7 @@ def main():
             input_type=dict(type='str', required=False, default='UDP', 
                         choices=[ 'UDP', 'TCP' ]),
             title=dict(type='str', required=True),
+            input_id=dict(type='str', required=False),
             global_input=dict(type='bool', required=False, default=True),
             node=dict(type='str', required=False),
             bind_address=dict(type='str', required=False, default='0.0.0.0'),
@@ -297,7 +292,6 @@ def main():
     endpoint = module.params['endpoint']
     graylog_user = module.params['graylog_user']
     graylog_password = module.params['graylog_password']
-    action = module.params['action']
     allow_http = module.params['allow_http']
 
 
@@ -318,10 +312,7 @@ def main():
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \
                 "Authorization": "Basic ' + api_token.decode() + '" }'
 
-    if action == "create":
-        status, message, content, url = create(module, base_url, headers)                
-    elif action == "update":
-        status, message, content, url = update(module, base_url, headers)
+    status, message, content, url = update(module, base_url, headers)
        
     uresp = {}
     content = to_text(content, encoding='UTF-8')
