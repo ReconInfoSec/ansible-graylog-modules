@@ -44,7 +44,9 @@ options:
     type: bool     
   action:
     description:
-      - Action to take against LDAP API.
+      - Action to take against system/input API.
+      - Warning : when update, all settings with default value set in this Ansible module (like bind_address, port ...) will replace existing values
+        You must explicitly set these values if they differ from those by default
     required: true
     default: create
     choices: [ create, update ]
@@ -62,6 +64,11 @@ options:
       - Required with actions create, update and delete
     required: true
     type: str
+  input_id:
+    description:
+      - ID of input to update
+    required: false
+    type: str    
   global_input:
     description:
       - Input is present on all Graylog nodes
@@ -191,11 +198,31 @@ from ansible.module_utils.urls import fetch_url, to_text
 
 def update(module, base_url, headers):
 
-    url = base_url
-       
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='PUT', data=module.jsonify(payload))
+    configuration = {}
+    for key in [ 'bind_address', 'port', 'number_worker_threads', 'override_source', 'recv_buffer_size', \
+                 'tcp_keepalive', 'tls_enable', 'tls_cert_file', 'tls_key_file', 'tls_key_password', \
+                 'tls_client_auth', 'tls_client_auth_cert_file', 'use_null_delimiter', 'decompress_size_limit', \
+                 'enable_cors', 'idle_writer_timeout', 'max_chunk_size', 'max_message_size' ]:
+        if module.params[key] is not None:
+            configuration[key] = module.params[key]
 
-    if info['status'] != 204:
+    payload = {}
+
+    payload['type'] = module.params['input_type']
+    payload['title'] = module.params['title']
+    payload['global'] = module.params['global_input']
+    payload['node'] = module.params['node']
+    payload['configuration'] = configuration
+
+    if module.params['action'] == "create":
+      httpMethod = "POST"
+    else:
+      httpMethod = "PUT"
+      base_url = base_url + "/" + module.params['input_id']
+
+    response, info = fetch_url(module=module, url=base_url, headers=json.loads(headers), method=httpMethod, data=module.jsonify(payload))
+
+    if info['status'] != 201:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
@@ -203,7 +230,7 @@ def update(module, base_url, headers):
     except AttributeError:
         content = info.pop('body', '')
 
-    return info['status'], info['msg'], content, url
+    return info['status'], info['msg'], content, base_url
 
 def get_token(module, endpoint, username, password, allow_http):
 
@@ -244,7 +271,7 @@ def main():
             action=dict(type='str', required=False, default='create', 
                         choices=[ 'create', 'update' ]),
             input_type=dict(type='str', required=False, default='UDP', 
-                        choices=[ 'UDP', 'TCP', 'HTTP' ],
+                        choices=[ 'UDP', 'TCP', 'HTTP' ]),
             title=dict(type='str', required=True ),
             global_input=dict(type='bool', required=False, default=True),
             node=dict(type='str', required=False),
@@ -259,7 +286,7 @@ def main():
             tls_key_file=dict(type='str', required=False),
             tls_key_password=dict(type='str', required=False),
             tls_client_auth=dict(type='str', required=False, default='disabled', 
-                        choices=[ 'disabled', 'optional', 'required' ],
+                        choices=[ 'disabled', 'optional', 'required' ]),
             tls_client_auth_cert_file=dict(type='str', required=False),
             use_null_delimiter=dict(type='bool', required=False, default=False),
             decompress_size_limit=dict(type='int', required=False, default=8388608),
@@ -273,9 +300,7 @@ def main():
     endpoint = module.params['endpoint']
     graylog_user = module.params['graylog_user']
     graylog_password = module.params['graylog_password']
-    action = module.params['action']
     allow_http = module.params['allow_http']
-    input_type = module.params['input_type']
 
     if allow_http == True:
       endpoint = "http://" + endpoint
@@ -283,12 +308,12 @@ def main():
       endpoint = "https://" + endpoint
 
     # Build full name of input type
-    if input_type == "TCP":
-        input_type = "org.graylog2.inputs.gelf.tcp.GELFTCPInput"
-    elif input_type == "UDP":
-        input_type = "org.graylog2.inputs.gelf.udp.GELFUDPInput"
+    if module.params['input_type'] == "TCP":
+        module.params['input_type'] = "org.graylog2.inputs.gelf.tcp.GELFTCPInput"
+    elif module.params['input_type'] == "UDP":
+        module.params['input_type'] = "org.graylog2.inputs.gelf.udp.GELFUDPInput"
     else:
-        input_type = "org.graylog2.inputs.gelf.http.GELFHttpInput"
+        module.params['input_type'] = "org.graylog2.inputs.gelf.http.GELFHttpInput"
 
     base_url = endpoint + "/api/system/inputs"
 
@@ -296,14 +321,7 @@ def main():
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \
                 "Authorization": "Basic ' + api_token.decode() + '" }'
 
-    if action == "list":
-        status, message, content, url = list(module, base_url, headers)                
-    elif action == "create":
-        status, message, content, url = create(module, base_url, headers)
-    elif action == "update":
-        status, message, content, url = update(module, base_url, headers)
-    elif action == "delete":
-        status, message, content, url = delete(module, base_url, headers)
+    status, message, content, url = update(module, base_url, headers)
        
     uresp = {}
     content = to_text(content, encoding='UTF-8')
