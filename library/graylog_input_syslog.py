@@ -45,6 +45,8 @@ options:
   action:
     description:
       - Action to take against system/input API.
+      - Warning : when update, all settings with default value set in this Ansible module (like bind_address, port ...) will replace existing values
+        You must explicitly set these values if they differ from those by default
     required: true
     default: create
     choices: [ create, update ]
