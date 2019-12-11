@@ -186,7 +186,18 @@ options:
 '''
 
 EXAMPLES = '''
-
+    - name: Create GELF HTTP input
+      graylog_input_gelf:
+        endpoint: "{{ graylog_endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        allow_http: "true"
+        validate_certs: "false"
+        action: "create"
+        input_type: "HTTP"
+        title: "Test input GELF HTTP"
+        global_input: "true"
+        bind_address: "0.0.0.0"
 '''
 
 # import module snippets
