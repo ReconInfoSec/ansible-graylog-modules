@@ -59,6 +59,16 @@ The following modules are available with the corresponding actions:
   * update
   * delete
   * test
+* graylog_input
+  * list
+  * delete
+* graylog_input_rsyslog
+  * create
+  * update
+* graylog_input_gelf
+  * create
+  * update
+
 
 ### Examples
 
@@ -353,7 +363,7 @@ The following modules are available with the corresponding actions:
 #### Input managment
 ```
   - name: Display all inputs
-    graylog_inputs:
+    graylog_input:
       endpoint: "{{ graylog_endpoint }}"
       graylog_user: "{{ graylog_user }}"
       graylog_password: "{{ graylog_password }}"
@@ -362,7 +372,7 @@ The following modules are available with the corresponding actions:
       action: "list"
 
   - name: Remove input with ID 1df0f1234abcd0000d0adf20
-    graylog_inputs:
+    graylog_input:
       endpoint: "{{ graylog_endpoint }}"
       graylog_user: "{{ graylog_user }}"
       graylog_password: "{{ graylog_password }}"
@@ -405,7 +415,7 @@ The following modules are available with the corresponding actions:
       bind_address: "0.0.0.0"
 
   - name: Update existing RSyslog input
-    graylog_input_syslog:
+    graylog_input_rsyslog:
       endpoint: "{{ graylog_endpoint }}"
       graylog_user: "{{ graylog_user }}"
       graylog_password: "{{ graylog_password }}"

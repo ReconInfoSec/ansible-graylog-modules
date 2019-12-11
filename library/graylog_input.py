@@ -8,7 +8,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'supported_by': 'community'}
 
 DOCUMENTATION = '''
-module: graylog_inputs
+module: graylog_input
 short_description: Manage Graylog inputs
 description:
     - The Graylog inputs module allows configuration of inputs nodes.
@@ -58,7 +58,7 @@ options:
 
 EXAMPLES = '''
     - name: Display all inputs
-      graylog_inputs:
+      graylog_input:
         endpoint: "{{ graylog_endpoint }}"
         graylog_user: "{{ graylog_user }}"
         graylog_password: "{{ graylog_password }}"
@@ -67,7 +67,7 @@ EXAMPLES = '''
         action: "list"
 
     - name: Remove input with ID 1df0f1234abcd0000d0adf20
-      graylog_inputs:
+      graylog_input:
         endpoint: "{{ graylog_endpoint }}"
         graylog_user: "{{ graylog_user }}"
         graylog_password: "{{ graylog_password }}"

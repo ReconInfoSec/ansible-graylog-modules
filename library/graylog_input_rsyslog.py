@@ -8,7 +8,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'supported_by': 'community'}
 
 DOCUMENTATION = '''
-module: graylog_inputs
+module: graylog_input_rsyslog
 short_description: Manage Graylog input type Syslog
 description:
     - The Graylog inputs module allows configuration of input type Syslog on nodes.
@@ -180,7 +180,7 @@ options:
 
 EXAMPLES = '''
   - name: Create Rsyslog TCP input
-    graylog_input_syslog:
+    graylog_input_rsyslog:
       endpoint: "{{ graylog_endpoint }}"
       graylog_user: "{{ graylog_user }}"
       graylog_password: "{{ graylog_password }}"
@@ -201,7 +201,7 @@ EXAMPLES = '''
 
 
   - name: Update existing input
-    graylog_input_syslog:
+    graylog_input_rsyslog:
       endpoint: "{{ graylog_endpoint }}"
       graylog_user: "{{ graylog_user }}"
       graylog_password: "{{ graylog_password }}"
