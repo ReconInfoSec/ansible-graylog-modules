@@ -320,7 +320,7 @@ def main():
             tls_enable=dict(type='bool', required=False, default=False),
             tls_cert_file=dict(type='str', required=False),
             tls_key_file=dict(type='str', required=False),
-            tls_key_password=dict(type='str', required=False),
+            tls_key_password=dict(type='str', required=False, no_log=True),
             tls_client_auth=dict(type='str', required=False, default='disabled', 
                         choices=[ 'disabled', 'optional', 'required' ]),
             tls_client_auth_cert_file=dict(type='str', required=False),
