@@ -36,6 +36,12 @@ options:
     required: false
     default: false
     type: bool
+  validate_certs:
+    description:
+      - Allow untrusted certificate
+    required: false
+    default: false
+    type: bool      
   action:
     description:
       - Action to take against LDAP API.
@@ -192,6 +198,7 @@ def main():
             action=dict(type='str', required=False, default='list', 
                         choices=[ 'list', 'list_mapping', 'update' ]),
             allow_http=dict(type='bool', required=False, default=False),
+            validate_certs=dict(type='bool', required=False, default=True),
             group=dict(type='str'),
             role=dict(type='str')
         )

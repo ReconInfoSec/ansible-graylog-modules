@@ -38,6 +38,12 @@ options:
     required: false
     default: false
     type: bool    
+  validate_certs:
+    description:
+      - Allow untrusted certificate
+    required: false
+    default: false
+    type: bool      
   action:
     description:
       - Action to take against pipeline API.
@@ -594,6 +600,7 @@ def main():
             graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
             allow_http=dict(type='bool', required=False, default=False),
+            validate_certs=dict(type='bool', required=False, default=True),
             action=dict(type='str', required=False, default='list',
                         choices=['create', 'create_connection', 'parse_rule', 'create_rule', 'update', 'update_connection',
                                  'update_rule', 'delete', 'delete_rule', 'list', 'list_rules', 'query_rules', 'query_pipelines']),

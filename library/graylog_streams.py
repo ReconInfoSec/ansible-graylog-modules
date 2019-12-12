@@ -38,6 +38,12 @@ options:
     required: false
     default: false
     type: bool    
+  validate_certs:
+    description:
+      - Allow untrusted certificate
+    required: false
+    default: false
+    type: bool      
   action:
     description:
       - Action to take against stream API.
@@ -665,6 +671,7 @@ def main():
             graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
             allow_http=dict(type='bool', required=False, default=False),
+            validate_certs=dict(type='bool', required=False, default=True),
             action=dict(type='str', required=False, default='list', choices=['create', 'create_rule', 'start', 'pause',
                         'update', 'update_rule', 'delete', 'delete_rule', 'list', 'query_streams']),
             stream_id=dict(type='str'),
