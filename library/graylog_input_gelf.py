@@ -205,9 +205,46 @@ import json
 import base64
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import fetch_url, to_text
+import re
+
+def search_by_name(module, base_url, headers, title):
+    
+    url = base_url
+    inputExist = False
+
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
+
+    try:
+        content = to_text(response.read(), errors='surrogate_or_strict')
+        data = json.loads(content)
+    except AttributeError:
+        content = info.pop('body', '')
+
+    regex = r"^" + re.escape(title) + r"$"
+
+    for graylogInputs in data['inputs']:
+      if re.match(regex, graylogInputs['title']) is not None:
+        inputExist = True
+
+    return inputExist
 
 
-def update(module, base_url, headers):
+def action(module, base_url, headers):
+
+    url = base_url
+
+    if module.params['action'] == "create":
+      if module.params['force'] == False:
+        inputExist = search_by_name(module, base_url, headers, module.params['title'])
+        if inputExist == True:
+          module.exit_json(changed=False)
+      httpMethod = "POST"
+    else:
+      httpMethod = "PUT"
+      url = base_url + "/" + module.params['input_id']
 
     configuration = {}
     for key in [ 'bind_address', 'port', 'number_worker_threads', 'override_source', 'recv_buffer_size', \
@@ -224,12 +261,6 @@ def update(module, base_url, headers):
     payload['global'] = module.params['global_input']
     payload['node'] = module.params['node']
     payload['configuration'] = configuration
-
-    if module.params['action'] == "create":
-      httpMethod = "POST"
-    else:
-      httpMethod = "PUT"
-      base_url = base_url + "/" + module.params['input_id']
 
     response, info = fetch_url(module=module, url=base_url, headers=json.loads(headers), method=httpMethod, data=module.jsonify(payload))
 
@@ -332,7 +363,7 @@ def main():
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \
                 "Authorization": "Basic ' + api_token.decode() + '" }'
 
-    status, message, content, url = update(module, base_url, headers)
+    status, message, content, url = action(module, base_url, headers)
        
     uresp = {}
     content = to_text(content, encoding='UTF-8')
