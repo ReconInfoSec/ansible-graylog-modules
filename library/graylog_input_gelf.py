@@ -262,7 +262,7 @@ def action(module, base_url, headers):
     payload['node'] = module.params['node']
     payload['configuration'] = configuration
 
-    response, info = fetch_url(module=module, url=base_url, headers=json.loads(headers), method=httpMethod, data=module.jsonify(payload))
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method=httpMethod, data=module.jsonify(payload))
 
     if info['status'] != 201:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
