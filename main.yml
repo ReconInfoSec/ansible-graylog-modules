@@ -225,6 +225,19 @@
         pipeline_name: "test_pipeline"
       register: pipeline
 
+    - name: Validate pipeline 
+      graylog_pipelines:
+        action: parse_pipeline
+        endpoint: "{{ endpoint }}"
+        graylog_user: "{{ graylog_user }}"
+        graylog_password: "{{ graylog_password }}"
+        source: |
+          pipeline "test_pipeline"
+          stage 0 match either
+          rule "test_rule_domain_threat_intel"
+          end
+      register: validate_pipeline
+
     - name: Update pipeline with rule
       graylog_pipelines:
         action: update
@@ -237,6 +250,7 @@
           stage 0 match either
           rule "test_rule_domain_threat_intel"
           end
+      when: validate_pipeline.status == 200
 
     - name: Create Stream connection to processing pipeline
       graylog_pipelines:
@@ -328,7 +342,7 @@
         system_username: "ldapbind@mydomain.com"
         system_password: "bindPassw0rd"
         search_base: "cn=users,dc=mydomain,dc=com"
-        search_pattern: "(&(objectClass=user)(sAMAccountName={0}))"    
+        search_pattern: "(&(objectClass=user)(sAMAccountName={0}))"
         display_name_attribute: "displayName"
         group_search_base: "cn=groups,dc=mydomain,dc=com"
         group_search_pattern: "(&(objectClass=group)(cn=graylog*))"
@@ -345,7 +359,7 @@
       graylog_ldap:
         endpoint: "graylog.mydomain.com"
         graylog_user: "username"
-        graylog_password: "password"   
+        graylog_password: "password"
         action: "get"
       register: currentConfiguration
 
@@ -383,7 +397,7 @@
       graylog_ldap_groups:
         endpoint: "graylog.mydomain.com"
         graylog_user: "username"
-        graylog_password: "password"   
+        graylog_password: "password"
         action: "update"
         group: "{{ item.group }}"
         role: "{{ item.role }}"

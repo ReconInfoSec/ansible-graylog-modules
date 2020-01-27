@@ -37,19 +37,19 @@ options:
       - Allow non HTTPS connexion
     required: false
     default: false
-    type: bool    
+    type: bool
   validate_certs:
     description:
       - Allow untrusted certificate
     required: false
     default: false
-    type: bool      
+    type: bool
   action:
     description:
       - Action to take against pipeline API.
     required: false
     default: list
-    choices: [ create, create_connection, parse_rule, create_rule, update,
+    choices: [ create, create_connection, parse_pipeline, parse_rule, create_rule, update,
                 update_connection, update_rule, delete, delete_rule, list, list_rules, query_rules, query_pipelines ]
     type: str
   pipeline_id:
@@ -132,6 +132,18 @@ EXAMPLES = '''
          let dns_query_intel = threat_intel_lookup_domain(to_string($message.dns_query), "dns_query");
          set_fields(dns_query_intel);
       end
+
+# Validate/parse pipeline
+- graylog_pipelines:
+  action: parse_pipeline
+  endpoint: "graylog.mydomain.com"
+  graylog_user: "username"
+  graylog_password: "password"
+  source: |
+    pipeline "test_pipeline"
+    stage 1 match either
+    rule "test_rule_domain_threat_intel
+    end
 
 # Create pipeline with new rule
 - graylog_pipelines:
@@ -296,6 +308,29 @@ def create_connection(module, connection_url, headers):
 def parse_rule(module, rule_url, headers):
 
     url = "/".join([rule_url, "parse"])
+
+    payload = {}
+
+    for key in ['source']:
+        if module.params[key] is not None:
+            payload[key] = module.params[key]
+
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), timeout=20, method='POST', data=module.jsonify(payload))
+
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
+
+    try:
+        content = to_text(response.read(), errors='surrogate_or_strict')
+    except AttributeError:
+        content = info.pop('body', '')
+
+    return info['status'], info['msg'], content, url
+
+
+def parse_pipeline(module, pipeline_url, headers):
+
+    url = "/".join([pipeline_url, "parse"])
 
     payload = {}
 
@@ -602,7 +637,7 @@ def main():
             allow_http=dict(type='bool', required=False, default=False),
             validate_certs=dict(type='bool', required=False, default=True),
             action=dict(type='str', required=False, default='list',
-                        choices=['create', 'create_connection', 'parse_rule', 'create_rule', 'update', 'update_connection',
+                        choices=['create', 'create_connection', 'parse_pipeline', 'parse_rule', 'create_rule', 'update', 'update_connection',
                                  'update_rule', 'delete', 'delete_rule', 'list', 'list_rules', 'query_rules', 'query_pipelines']),
             pipeline_id=dict(type='str'),
             pipeline_name=dict(type='str'),
@@ -640,6 +675,8 @@ def main():
 
     if action == "create":
         status, message, content, url = create(module, pipeline_url, headers)
+    elif action == "parse_pipeline":
+        status, message, content, url = parse_pipeline(module, pipeline_url, headers)
     elif action == "parse_rule":
         status, message, content, url = parse_rule(module, rule_url, headers)
     elif action == "create_rule":
