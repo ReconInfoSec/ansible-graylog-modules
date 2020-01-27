@@ -32,6 +32,18 @@ options:
       - Graylog privileged user password.
     required: false
     type: str
+  allow_http:
+    description:
+      - Allow non HTTPS connexion
+    required: false
+    default: false
+    type: bool    
+  validate_certs:
+    description:
+      - Allow untrusted certificate
+    required: false
+    default: false
+    type: bool      
   action:
     description:
       - Action to take against collector configuration API.
@@ -233,7 +245,7 @@ def get_token(module, endpoint, username, password):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" }'
 
-    url = "https://%s/api/system/sessions" % (endpoint)
+    url = endpoint + "/api/system/sessions"
 
     payload = {
         'username': username,
@@ -265,6 +277,8 @@ def main():
             endpoint=dict(type='str'),
             graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
+            allow_http=dict(type='bool', required=False, default=False),
+            validate_certs=dict(type='bool', required=False, default=True),
             action=dict(type='str', required=False, default='list_configurations',
                         choices=['list_configurations', 'query_collector_configurations', 'update_snippet']),
             configuration_id=dict(type='str'),
@@ -283,8 +297,14 @@ def main():
     configuration_id = module.params['configuration_id']
     configuration_name = module.params['configuration_name']
     snippet_name = module.params['snippet_name']
+    allow_http = module.params['allow_http']
 
-    configuration_url = "https://%s/api/plugins/org.graylog.plugins.collector/configurations" % (endpoint)
+    if allow_http == True:
+      endpoint = "http://" + endpoint
+    else:
+      endpoint = "https://" + endpoint
+
+    configuration_url = endpoint + "/api/plugins/org.graylog.plugins.collector/configurations"
 
     api_token = get_token(module, endpoint, graylog_user, graylog_password)
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \

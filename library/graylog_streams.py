@@ -32,6 +32,18 @@ options:
       - Graylog privileged user password.
     required: false
     type: str
+  allow_http:
+    description:
+      - Allow non HTTPS connexion
+    required: false
+    default: false
+    type: bool    
+  validate_certs:
+    description:
+      - Allow untrusted certificate
+    required: false
+    default: false
+    type: bool      
   action:
     description:
       - Action to take against stream API.
@@ -626,7 +638,7 @@ def get_token(module, endpoint, username, password):
 
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" }'
 
-    url = "https://%s/api/system/sessions" % (endpoint)
+    url = endpoint + "/api/system/sessions"
 
     payload = {
         'username': username,
@@ -658,6 +670,8 @@ def main():
             endpoint=dict(type='str'),
             graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
+            allow_http=dict(type='bool', required=False, default=False),
+            validate_certs=dict(type='bool', required=False, default=True),
             action=dict(type='str', required=False, default='list', choices=['create', 'create_rule', 'start', 'pause',
                         'update', 'update_rule', 'delete', 'delete_rule', 'list', 'query_streams']),
             stream_id=dict(type='str'),
@@ -693,8 +707,14 @@ def main():
     remove_matches_from_default_stream = module.params['remove_matches_from_default_stream']
     matching_type = module.params['matching_type']
     rules = module.params['rules']
+    allow_http = module.params['allow_http']
 
-    base_url = "https://%s/api/streams" % (endpoint)
+    if allow_http == True:
+      endpoint = "http://" + endpoint
+    else:
+      endpoint = "https://" + endpoint
+
+    base_url = endpoint + "/api/streams"
 
     api_token = get_token(module, endpoint, graylog_user, graylog_password)
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \

@@ -54,6 +54,21 @@ The following modules are available with the corresponding actions:
   * list_configurations
   * query_collector_configurations
   * update_snippet
+* graylog_ldap
+  * get
+  * update
+  * delete
+  * test
+* graylog_input
+  * list
+  * delete
+* graylog_input_rsyslog
+  * create
+  * update
+* graylog_input_gelf
+  * create
+  * update
+
 
 ### Examples
 
@@ -262,4 +277,158 @@ The following modules are available with the corresponding actions:
     graylog_password: "{{ graylog_password }}"
     stream_id: "{{ stream.json.id }}"
     index_set_id: "{{ index_set.json.id }}"
+```
+
+#### LDAP configuration
+```
+- name: Setup Active Directory authentication without SSL and set "Reader" as default role
+  graylog_ldap:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    enabled: "true"
+    active_directory: "true"
+    ldap_uri: "ldap://domaincontroller.mydomain.com:389"
+    system_password_set: "true"
+    system_username: "ldapbind@mydomain.com"
+    system_password: "bindPassw0rd"
+    search_base: "cn=users,dc=mydomain,dc=com"
+    search_pattern: "(&(objectClass=user)(sAMAccountName={0}))"    
+    display_name_attribute: "displayName"
+    group_search_base: "cn=groups,dc=mydomain,dc=com"
+    group_search_pattern: "(&(objectClass=group)(cn=graylog*))"
+    group_id_attribute: "cn"
+
+- name: Remove current LDAP authentication configuration
+  graylog_ldap:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    action: "delete"
+
+-name: Get current LDAP authentication configuration
+  graylog_ldap:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"   
+    action: "get"
+  register: currentConfiguration
+
+- name: Print current LDAP authentication configuration
+  debug:
+    msg: "{{ currentConfiguration }}"
+
+- name: Test LDAP bind
+  graylog_ldap:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    action: "test"
+    active_directory: "true"
+    ldap_uri: "ldap://domaincontroller.mydomain.com:389"
+    system_password_set: "true"
+    system_username: "ldapbind@mydomain.com"
+    system_password: "bindPassw0rd"
+```
+
+#### LDAP group mapping
+```
+- name: Get all LDAP groups
+  graylog_ldap_groups:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    action: "list"
+
+- name: Get the LDAP group to Graylog role mapping
+  graylog_ldap_groups:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"
+    action: "list_mapping"
+
+- name: Update the LDAP group to Graylog role mapping
+  graylog_ldap_groups:
+    endpoint: "graylog.mydomain.com"
+    graylog_user: "username"
+    graylog_password: "password"   
+    action: "update"
+    group: "{{ item.group }}"
+    role: "{{ item.role }}"
+  with_items:
+    - { group : "ldap-group-admins", role : "Admin" }
+    - { group : "ldap-group-read", role : "Reader" }
+```
+
+#### Input managment
+```
+  - name: Display all inputs
+    graylog_input:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "list"
+
+  - name: Remove input with ID 1df0f1234abcd0000d0adf20
+    graylog_input:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "delete"        
+      input_id: "1df0f1234abcd0000d0adf20"
+
+  - name: Create Rsyslog TCP input
+    graylog_input_syslog:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "create"
+      input_type: "TCP"
+      title: "Rsyslog TCP"
+      global_input: "true"
+      allow_override_date: "true"
+      bind_address: "0.0.0.0"
+      expand_structured_data: "false"
+      force_rdns: "false"
+      number_worker_threads: "2"
+      port: "514"
+      recv_buffer_size: "1048576"
+      store_full_message: "true"
+
+  - name: Create GELF HTTP input
+    graylog_input_gelf:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "create"
+      input_type: "HTTP"
+      title: "Test input GELF HTTP"
+      global_input: "true"
+      bind_address: "0.0.0.0"
+
+  - name: Update existing RSyslog input
+    graylog_input_rsyslog:
+      endpoint: "{{ graylog_endpoint }}"
+      graylog_user: "{{ graylog_user }}"
+      graylog_password: "{{ graylog_password }}"
+      allow_http: "true"
+      validate_certs: "false"
+      action: "update"
+      input_type: "TCP"
+      title: "Rsyslog TCP"
+      global_input: "true"
+      allow_override_date: "true"
+      expand_structured_data: "false"
+      force_rdns: "true"
+      port: "1514"
+      store_full_message: "true"
+      input_id: "1df0f1234abcd0000d0adf20"      
 ```
