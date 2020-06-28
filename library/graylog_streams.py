@@ -535,7 +535,7 @@ def start(module, base_url, headers, stream_id):
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST')
 
-    if info['status'] != 200:
+    if info['status'] != 201:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
