@@ -35,13 +35,13 @@ options:
       - Allow non HTTPS connexion
     required: false
     default: false
-    type: bool    
+    type: bool
   validate_certs:
     description:
       - Allow untrusted certificate
     required: false
     default: false
-    type: bool     
+    type: bool
   action:
     description:
       - Action to take against system/input API.
@@ -68,7 +68,7 @@ options:
     description:
       - ID of input to update
     required: false
-    type: str    
+    type: str
   global_input:
     description:
       - Input is present on all Graylog nodes
@@ -89,7 +89,7 @@ options:
   port:
     description:
       - Port to listen on
-    required: true  
+    required: true
     default: 12201
     type: int
    number_worker_threads:
@@ -208,7 +208,7 @@ from ansible.module_utils.urls import fetch_url, to_text
 import re
 
 def search_by_name(module, base_url, headers, title):
-    
+
     url = base_url
     inputExist = False
 
@@ -237,10 +237,9 @@ def action(module, base_url, headers):
     url = base_url
 
     if module.params['action'] == "create":
-      if module.params['force'] == False:
-        inputExist = search_by_name(module, base_url, headers, module.params['title'])
-        if inputExist == True:
-          module.exit_json(changed=False)
+      inputExist = search_by_name(module, base_url, headers, module.params['title'])
+      if inputExist == True:
+        module.exit_json(changed=False)
       httpMethod = "POST"
     else:
       httpMethod = "PUT"
@@ -310,9 +309,9 @@ def main():
             graylog_password=dict(type='str', no_log=True),
             validate_certs=dict(type='bool', required=False, default=True),
             allow_http=dict(type='bool', required=False, default=False),
-            action=dict(type='str', required=False, default='create', 
+            action=dict(type='str', required=False, default='create',
                         choices=[ 'create', 'update' ]),
-            input_type=dict(type='str', required=False, default='UDP', 
+            input_type=dict(type='str', required=False, default='UDP',
                         choices=[ 'UDP', 'TCP', 'HTTP' ]),
             title=dict(type='str', required=True ),
             global_input=dict(type='bool', required=False, default=True),
@@ -327,7 +326,7 @@ def main():
             tls_cert_file=dict(type='str', required=False),
             tls_key_file=dict(type='str', required=False),
             tls_key_password=dict(type='str', required=False, no_log=True),
-            tls_client_auth=dict(type='str', required=False, default='disabled', 
+            tls_client_auth=dict(type='str', required=False, default='disabled',
                         choices=[ 'disabled', 'optional', 'required' ]),
             tls_client_auth_cert_file=dict(type='str', required=False),
             use_null_delimiter=dict(type='bool', required=False, default=False),
@@ -364,7 +363,7 @@ def main():
                 "Authorization": "Basic ' + api_token.decode() + '" }'
 
     status, message, content, url = action(module, base_url, headers)
-       
+
     uresp = {}
     content = to_text(content, encoding='UTF-8')
 
