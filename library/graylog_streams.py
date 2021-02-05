@@ -163,7 +163,7 @@ EXAMPLES = '''
     endpoint: "graylog.mydomain.com"
     graylog_user: "username"
     graylog_password: "password"
-    stream_id: "{{ stream.json.id }}"
+    stream_id: "{{ stream.json.stream_id }}"
     remove_matches_from_default_stream: True
 
 # Create stream rule
@@ -172,7 +172,7 @@ EXAMPLES = '''
     endpoint: "graylog.mydomain.com"
     graylog_user: "username"
     graylog_password: "password"
-    stream_id: "{{ stream.json.id }}"
+    stream_id: "{{ stream.json.stream_id }}"
     description: "Windows Security Logs"
     field: "winlogbeat_log_name"
     type: 1
@@ -185,7 +185,7 @@ EXAMPLES = '''
     endpoint: "graylog.mydomain.com"
     graylog_user: "username"
     graylog_password: "password"
-    stream_id: "{{ stream.json.id }}"
+    stream_id: "{{ stream.json.stream_id }}"
 
 # Pause stream
 - graylog_streams:
@@ -193,7 +193,7 @@ EXAMPLES = '''
     endpoint: "graylog.mydomain.com"
     graylog_user: "username"
     graylog_password: "password"
-    stream_id: "{{ stream.json.id }}"
+    stream_id: "{{ stream.json.stream_id }}"
 
 # Update stream rule
 - graylog_streams:
@@ -201,7 +201,7 @@ EXAMPLES = '''
     endpoint: "graylog.mydomain.com"
     graylog_user: "username"
     graylog_password: "password"
-    stream_id: "{{ stream.json.id }}"
+    stream_id: "{{ stream.json.stream_id }}"
     rule_id: "{{ rule.json.id }}"
     description: "Windows Security and Application Logs"
 
@@ -211,7 +211,7 @@ EXAMPLES = '''
     endpoint: "graylog.mydomain.com"
     graylog_user: "username"
     graylog_password: "password"
-    stream_id: "{{ stream.json.id }}"
+    stream_id: "{{ stream.json.stream_id }}"
     rule_id: "{{ rule.json.id }}"
 
 # Delete stream
@@ -220,7 +220,7 @@ EXAMPLES = '''
     endpoint: "graylog.mydomain.com"
     graylog_user: "username"
     graylog_password: "password"
-    stream_id: "{{ stream.json.id }}"
+    stream_id: "{{ stream.json.stream_id }}"
 '''
 
 RETURN = '''
@@ -535,7 +535,7 @@ def start(module, base_url, headers, stream_id):
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST')
 
-    if info['status'] != 200:
+    if info['status'] != 201:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
     try:
