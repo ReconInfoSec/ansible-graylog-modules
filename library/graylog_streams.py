@@ -17,9 +17,14 @@ description:
 version_added: "2.9"
 author: "Whitney Champion (@shortstack)"
 options:
-  endpoint:
+  graylog_fqdn:
     description:
       - Graylog endoint. (i.e. graylog.mydomain.com).
+    required: false
+    type: str
+  graylog_port:
+    description:
+      - Graylog API TCP port. (i.e. 9000).
     required: false
     type: str
   graylog_user:
@@ -124,14 +129,16 @@ options:
 EXAMPLES = '''
 # List streams
 - graylog_streams:
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
 
 # Get stream from stream name query_streams
 - graylog_streams:
     action: query_streams
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
     stream_name: "test_stream"
@@ -139,7 +146,8 @@ EXAMPLES = '''
 
 # List single stream by ID
 - graylog_streams:
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
     stream_id: "{{ stream.json.id }}"
@@ -147,7 +155,8 @@ EXAMPLES = '''
 # Create stream
 - graylog_streams:
     action: create
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
     title: "Client XYZ"
@@ -160,7 +169,8 @@ EXAMPLES = '''
 # Update stream
 - graylog_streams:
     action: update
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
     stream_id: "{{ stream.json.id }}"
@@ -169,7 +179,8 @@ EXAMPLES = '''
 # Create stream rule
 - graylog_streams:
     action: create_rule
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
     stream_id: "{{ stream.json.id }}"
@@ -182,7 +193,8 @@ EXAMPLES = '''
 # Start stream
 - graylog_streams:
     action: start
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
     stream_id: "{{ stream.json.id }}"
@@ -190,7 +202,8 @@ EXAMPLES = '''
 # Pause stream
 - graylog_streams:
     action: pause
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
     stream_id: "{{ stream.json.id }}"
@@ -198,7 +211,8 @@ EXAMPLES = '''
 # Update stream rule
 - graylog_streams:
     action: update_rule
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
     stream_id: "{{ stream.json.id }}"
@@ -208,7 +222,8 @@ EXAMPLES = '''
 # Delete stream rule
 - graylog_streams:
     action: delete_rule
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
     stream_id: "{{ stream.json.id }}"
@@ -217,7 +232,8 @@ EXAMPLES = '''
 # Delete stream
 - graylog_streams:
     action: delete
-    endpoint: "graylog.mydomain.com"
+    graylog_fqdn: "graylog.mydomain.com"
+    graylog_port: "9000"
     graylog_user: "username"
     graylog_password: "password"
     stream_id: "{{ stream.json.id }}"
@@ -612,12 +628,9 @@ def query_streams(module, base_url, headers, stream_name):
     return stream_id
 
 
-def default_index_set(module, endpoint, base_url, headers):
+def default_index_set(module, endpoint, headers):
 
-    url = "%s/api/system/indices/index_sets?skip=0&limit=0&stats=false" % (base_url)
-    #raise Exception(url)
-
-    #url = "https://%s/api/system/indices/index_sets?skip=0&limit=0&stats=false" % (endpoint)
+    url = "%s/api/system/indices/index_sets?skip=0&limit=0&stats=false" % (endpoint)
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
@@ -632,8 +645,6 @@ def default_index_set(module, endpoint, base_url, headers):
     except AttributeError:
         content = info.pop('body', '')
 
-
-
     return default_index_set_id
 
 
@@ -642,7 +653,6 @@ def get_token(module, endpoint, username, password):
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" }'
 
     url = endpoint + "/api/system/sessions"
-    print(url)
 
     payload = {
         'username': username,
@@ -670,7 +680,8 @@ def get_token(module, endpoint, username, password):
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            endpoint=dict(type='str'),
+            graylog_fqdn=dict(type='str'),
+            graylog_port=dict(type='str'),
             graylog_user=dict(type='str'),
             graylog_password=dict(type='str', no_log=True),
             allow_http=dict(type='bool', required=False, default=False),
@@ -693,7 +704,8 @@ def main():
         )
     )
 
-    endpoint = module.params['endpoint']
+    graylog_fqdn = module.params['graylog_fqdn']
+    graylog_port = module.params['graylog_port']
     graylog_user = module.params['graylog_user']
     graylog_password = module.params['graylog_password']
     action = module.params['action']
@@ -713,15 +725,17 @@ def main():
     allow_http = module.params['allow_http']
 
     if allow_http == True:
-      endpoint = "http://" + endpoint
+        endpoint = "http://" + graylog_fqdn + ":" + graylog_port
     else:
-      endpoint = "https://" + endpoint
+        endpoint = "https://" + graylog_fqdn + ":" + graylog_port
 
     base_url = endpoint + "/api/streams"
 
     api_token = get_token(module, endpoint, graylog_user, graylog_password)
-    headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json", \
-                "Authorization": "Basic ' + api_token.decode() + '" }'
+    headers = '{ "Content-Type": "application/json", \
+                 "X-Requested-By": "Graylog API", \
+                 "Accept": "application/json", \
+                 "Authorization": "Basic ' + api_token.decode() + '" }'
 
     if action == "create":
         if index_set_id is None:
