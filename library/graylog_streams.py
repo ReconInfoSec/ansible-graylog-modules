@@ -739,7 +739,7 @@ def main():
 
     if action == "create":
         if index_set_id is None:
-            index_set_id = default_index_set(module, endpoint, base_url, headers)
+            index_set_id = default_index_set(module, endpoint, headers)
         status, message, content, url = create(module, base_url, headers, index_set_id)
     elif action == "create_rule":
         status, message, content, url = create_rule(module, base_url, headers)
