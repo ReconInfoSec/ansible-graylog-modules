@@ -614,22 +614,25 @@ def query_streams(module, base_url, headers, stream_name):
 
 def default_index_set(module, endpoint, base_url, headers):
 
-    url = "https://%s/api/system/indices/index_sets?skip=0&limit=0&stats=false" % (endpoint)
+    url = "%s/api/system/indices/index_sets?skip=0&limit=0&stats=false" % (base_url)
+    #raise Exception(url)
+
+    #url = "https://%s/api/system/indices/index_sets?skip=0&limit=0&stats=false" % (endpoint)
 
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
 
     if info['status'] != 200:
         module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
-
     try:
         content = to_text(response.read(), errors='surrogate_or_strict')
         indices = json.loads(content)
+        default_index_set_id = ""
+        if indices is not None:
+            default_index_set_id = indices['index_sets'][0]['id']
     except AttributeError:
         content = info.pop('body', '')
 
-    default_index_set_id = ""
-    if indices is not None:
-        default_index_set_id = indices['index_sets'][0]['id']
+
 
     return default_index_set_id
 
@@ -639,13 +642,13 @@ def get_token(module, endpoint, username, password):
     headers = '{ "Content-Type": "application/json", "X-Requested-By": "Graylog API", "Accept": "application/json" }'
 
     url = endpoint + "/api/system/sessions"
+    print(url)
 
     payload = {
         'username': username,
         'password': password,
         'host': endpoint
     }
-
     response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
     if info['status'] != 200:
