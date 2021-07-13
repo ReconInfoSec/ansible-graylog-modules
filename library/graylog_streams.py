@@ -614,18 +614,20 @@ def query_streams(module, base_url, headers, stream_name):
     except AttributeError:
         content = info.pop('body', '')
 
-    stream_id = ""
     if streams is not None:
-
         i = 0
         while i < len(streams['streams']):
             stream = streams['streams'][i]
             if stream_name == stream['title']:
-                stream_id = stream['id']
+                stream_json = {'stream_id': stream['id']}
                 break
+            else:
+                stream_json = {'stream_id': '0'}
             i += 1
+    else:
+        raise Exception("No streams returned from Graylog API")
 
-    return stream_id
+    return info['status'], info['msg'], json.dumps(stream_json), url
 
 
 def default_index_set(module, endpoint, headers):
@@ -758,12 +760,12 @@ def main():
     elif action == "list":
         status, message, content, url = list(module, base_url, headers, stream_id)
     elif action == "query_streams":
-        stream_id = query_streams(module, base_url, headers, stream_name)
-        status, message, content, url = list(module, base_url, headers, stream_id)
+        status, message, content, url = query_streams(module, base_url, headers, stream_name)
 
     uresp = {}
     content = to_text(content, encoding='UTF-8')
 
+   # check that HTTP response body is valid JSON as req'd by Ansible
     try:
         js = json.loads(content)
     except ValueError:
