@@ -381,6 +381,59 @@ def create(module, base_url, headers, index_set_id):
 
     return info['status'], info['msg'], content, url
 
+def query_rules(module, base_url, headers):
+
+    url = "/".join([base_url, module.params['stream_id'], "rules"])
+    #raise Exception(url)
+    payload = {}
+    field = module.params['field']
+    value = module.params['value']
+    #raise Exception(module.params['field'])
+
+
+    #TODO: GET current rules, compare field and value to determine duplication
+    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='GET')
+    if info['status'] != 200:
+        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
+
+    try:
+        content = to_text(response.read(), errors='surrogate_or_strict')
+        rules = json.loads(content)
+        #raise Exception(rules)
+    except AttributeError:
+        content = info.pop('body', '')
+
+    if rules is not None:
+        i = 0
+        while i < len(rules['stream_rules']):
+            rule = rules['stream_rules'][i]
+            if field == rule['field'] and value == rule['value']:
+                rule_json = {'rule_id': rule['id']}
+                #raise Exception(rule_json)
+                break
+            else:
+                rule_json = {'rule_id': '0'}
+            i += 1
+    else:
+        raise Exception("No streams returned from Graylog API")
+
+    return info['status'], info['msg'], json.dumps(rule_json), url
+
+    #for key in ['field', 'type', 'value', 'inverted', 'description']:
+    #    if module.params[key] is not None:
+    #        payload[key] = module.params[key]
+
+    #response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+
+    #if info['status'] != 201:
+    #    module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
+
+    #try:
+    #    content = to_text(response.read(), errors='surrogate_or_strict')
+    #except AttributeError:
+    #    content = info.pop('body', '')
+
+    #return info['status'], info['msg'], content, url
 
 def create_rule(module, base_url, headers):
 
@@ -583,6 +636,7 @@ def list(module, base_url, headers, stream_id):
 
     if stream_id is not None:
         url = "/".join([base_url, stream_id])
+        #raise Exception(url)
     else:
         url = base_url
 
@@ -689,7 +743,7 @@ def main():
             allow_http=dict(type='bool', required=False, default=False),
             validate_certs=dict(type='bool', required=False, default=True),
             action=dict(type='str', required=False, default='list', choices=['create', 'create_rule', 'start', 'pause',
-                        'update', 'update_rule', 'delete', 'delete_rule', 'list', 'query_streams']),
+                        'update', 'update_rule', 'delete', 'delete_rule', 'list', 'query_streams', 'query_rules']),
             stream_id=dict(type='str'),
             stream_name=dict(type='str'),
             rule_id=dict(type='str'),
@@ -761,6 +815,8 @@ def main():
         status, message, content, url = list(module, base_url, headers, stream_id)
     elif action == "query_streams":
         status, message, content, url = query_streams(module, base_url, headers, stream_name)
+    elif action == "query_rules":
+        status, message, content, url = query_rules(module, base_url, headers)
 
     uresp = {}
     content = to_text(content, encoding='UTF-8')
