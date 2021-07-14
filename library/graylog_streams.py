@@ -437,23 +437,31 @@ def query_rules(module, base_url, headers):
 
 def create_rule(module, base_url, headers):
 
-    url = "/".join([base_url, module.params['stream_id'], "rules"])
+    status, message, content, url = query_rules(module, base_url, headers)
+    #raise Exception(f'{status} {message} {content}')
+    query_result = json.loads(content)
+    #raise Exception(result['rule_id'])
+    if query_result['rule_id'] == "0":
+        url = "/".join([base_url, module.params['stream_id'], "rules"])
+        #raise Exception(url)
+        payload = {}
 
-    payload = {}
+        for key in ['field', 'type', 'value', 'inverted', 'description']:
+            if module.params[key] is not None:
+                payload[key] = module.params[key]
 
-    for key in ['field', 'type', 'value', 'inverted', 'description']:
-        if module.params[key] is not None:
-            payload[key] = module.params[key]
+        response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
 
-    response, info = fetch_url(module=module, url=url, headers=json.loads(headers), method='POST', data=module.jsonify(payload))
+        if info['status'] != 201:
+            module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
 
-    if info['status'] != 201:
-        module.fail_json(msg="Fail: %s" % ("Status: " + str(info['msg']) + ", Message: " + str(info['body'])))
+        try:
+            content = to_text(response.read(), errors='surrogate_or_strict')
+        except AttributeError:
+            content = info.pop('body', '')
+    else:
+        info = dict(url=url, status=200, msg="stream rule exists")
 
-    try:
-        content = to_text(response.read(), errors='surrogate_or_strict')
-    except AttributeError:
-        content = info.pop('body', '')
 
     return info['status'], info['msg'], content, url
 
